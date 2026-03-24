@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NVC Content Performance Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #00062a;
+  --card: #000d47;
+  --card2: #001060;
+  --border: rgba(255,255,255,0.08);
+  --orange: #ff6600;
+  --orange-dim: rgba(255,102,0,0.15);
+  --orange-mid: rgba(255,102,0,0.4);
+  --white: #ffffff;
+  --muted: rgba(255,255,255,0.5);
+  --faint: rgba(255,255,255,0.1);
+  --grid: rgba(255,255,255,0.06);
+  --font: 'Segoe UI', Arial, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--bg); color: var(--white); font-size: 14px; min-height: 100vh; }
+
+/* HEADER */
+.header {
+  background: #000066;
+  padding: 0 28px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,102,0,0.3);
+}
+.header-brand { display: flex; align-items: center; gap: 14px; }
+.logo { background: var(--orange); color: white; font-weight: 800; font-size: 13px; padding: 5px 11px; border-radius: 3px; letter-spacing: 1px; }
+.header-title { font-size: 15px; font-weight: 600; color: white; }
+.header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.live-pill { background: rgba(255,102,0,0.15); border: 1px solid rgba(255,102,0,0.35); color: var(--orange); font-size: 11px; padding: 3px 10px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
+.live-dot { width: 6px; height: 6px; background: var(--orange); border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+/* FILTER BAR */
+.filter-bar {
+  background: #000a40;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.filter-group { display: flex; align-items: center; gap: 8px; }
+.filter-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; white-space: nowrap; }
+.filter-sep { width: 1px; height: 20px; background: var(--border); }
+.date-chips { display: flex; gap: 4px; }
+.chip {
+  padding: 5px 12px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: transparent;
+  font-family: var(--font);
+  transition: all 0.15s;
+}
+.chip:hover { border-color: var(--orange-mid); color: white; }
+.chip.active { background: var(--orange); border-color: var(--orange); color: white; }
+.cat-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.last-sync { margin-left: auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
+.last-sync span { color: rgba(100,255,100,0.8); font-weight: 600; }
+.data-note { font-size: 10px; color: rgba(255,150,50,0.7); margin-left: 8px; }
+
+/* TABS */
+.tabs-bar {
+  background: #000a40;
+  border-bottom: 2px solid var(--border);
+  padding: 0 28px;
+  display: flex;
+  gap: 0;
+}
+.tab-btn {
+  padding: 18px 28px 15px;
+  border: none;
+  background: none;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.tab-btn:hover { color: white; }
+.tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+.tab-desc { font-size: 10px; font-weight: 400; color: var(--muted); text-transform: none; letter-spacing: 0; margin-top: 2px; display: block; }
+.tab-btn.active .tab-desc { color: var(--orange-mid); }
+
+/* PANELS */
+.tab-panel { display: none; padding: 24px 28px; }
+.tab-panel.active { display: block; }
+
+/* SECTION LABEL */
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.gsc-label { font-size: 9px; padding: 2px 6px; background: rgba(26,115,232,0.2); border: 1px solid rgba(26,115,232,0.3); color: #6ab0ff; border-radius: 3px; font-weight: 600; letter-spacing: 0.5px; margin-left: 6px; }
+.ga4-label { font-size: 9px; padding: 2px 6px; background: rgba(217,48,37,0.15); border: 1px solid rgba(217,48,37,0.3); color: #ff8080; border-radius: 3px; font-weight: 600; letter-spacing: 0.5px; margin-left: 6px; }
+.mock-note { font-size: 10px; color: rgba(255,150,50,0.6); font-style: italic; margin-left: 6px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+
+/* KPI GRID */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 22px; }
+.kpi {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 18px 20px;
+  border-left: 3px solid var(--orange);
+}
+.kpi.dim { border-left-color: rgba(255,255,255,0.2); }
+.kpi-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 8px; }
+.kpi-val { font-size: 28px; font-weight: 800; color: var(--white); line-height: 1; margin-bottom: 5px; }
+.kpi-val.orange { color: var(--orange); }
+.kpi-delta { font-size: 11px; font-weight: 600; }
+.kpi-delta.up { color: rgba(100,220,100,0.9); }
+.kpi-delta.down { color: rgba(255,100,100,0.9); }
+.kpi-delta.neutral { color: var(--muted); }
+.kpi-src { font-size: 10px; color: var(--faint); margin-top: 3px; }
+
+/* CHART CARDS */
+.charts-row { display: grid; gap: 14px; margin-bottom: 22px; }
+.charts-row.c2 { grid-template-columns: 1fr 1fr; }
+.charts-row.c3 { grid-template-columns: 1fr 1fr 1fr; }
+.charts-row.wide { grid-template-columns: 2fr 1fr; }
+.charts-row.narrow { grid-template-columns: 1fr 2fr; }
+.chart-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 18px 20px;
+}
+.chart-card.full { grid-column: 1/-1; }
+.ch-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.ch-title { font-size: 13px; font-weight: 700; color: white; }
+.ch-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.ch-tag { font-size: 10px; padding: 2px 7px; border-radius: 3px; font-weight: 600; white-space: nowrap; }
+.tag-gsc { background: rgba(26,115,232,0.15); border: 1px solid rgba(26,115,232,0.25); color: #6ab0ff; }
+.tag-ga4 { background: rgba(217,48,37,0.12); border: 1px solid rgba(217,48,37,0.25); color: #ff8080; }
+
+/* TABLE */
+.table-card { background: var(--card); border: 1px solid var(--border); border-radius: 5px; overflow: hidden; margin-bottom: 22px; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-table th { background: rgba(255,102,0,0.15); color: var(--orange); padding: 10px 14px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid rgba(255,102,0,0.2); }
+.data-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: rgba(255,255,255,0.85); }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,0.03); }
+.data-table td.rank { color: var(--muted); font-weight: 700; width: 28px; }
+.data-table td.path { color: rgba(150,180,255,0.9); font-weight: 500; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.data-table td.hi { color: var(--orange); font-weight: 700; text-align: right; }
+.data-table td.num { text-align: right; color: var(--muted); }
+.cat-pill { font-size: 10px; padding: 2px 7px; border-radius: 3px; font-weight: 600; }
+.pill-blog { background: rgba(100,150,255,0.15); color: #88aaff; }
+.pill-guides { background: rgba(180,100,255,0.15); color: #cc88ff; }
+.pill-cars { background: rgba(255,102,0,0.15); color: var(--orange); }
+.pill-vans { background: rgba(100,220,150,0.15); color: #88ddaa; }
+.pill-used { background: rgba(255,200,50,0.12); color: #ffcc50; }
+.pill-other { background: rgba(255,255,255,0.08); color: var(--muted); }
+
+/* BAR ROWS */
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.bar-label { width: 80px; font-size: 12px; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-track { flex: 1; background: rgba(255,255,255,0.07); border-radius: 2px; height: 24px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 2px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; color: white; font-weight: 600; transition: width 0.5s; }
+.bar-fill.orange { background: var(--orange); }
+.bar-fill.white { background: rgba(255,255,255,0.6); }
+.bar-fill.dim { background: rgba(255,102,0,0.5); }
+.bar-pct { width: 40px; text-align: right; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); }
+
+/* CONVERSION CARDS */
+.conv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 22px; }
+.conv-card { background: var(--card); border: 1px solid var(--border); border-radius: 5px; padding: 18px; text-align: center; }
+.conv-event { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; line-height: 1.4; }
+.conv-rate { font-size: 30px; font-weight: 800; color: var(--orange); line-height: 1; margin-bottom: 5px; }
+.conv-count { font-size: 11px; color: var(--muted); }
+
+/* INSIGHTS TAB */
+.insights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+.insight-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 20px;
+  border-left: 3px solid var(--orange);
+}
+.insight-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+.insight-title { font-size: 14px; font-weight: 700; color: white; margin-bottom: 8px; line-height: 1.3; }
+.insight-body { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.6; }
+.insight-metric { font-size: 11px; margin-top: 10px; padding: 8px 10px; background: rgba(255,102,0,0.1); border-radius: 3px; color: var(--orange); font-weight: 600; }
+.nl-panel { background: var(--card); border: 1px solid var(--border); border-radius: 5px; padding: 22px; }
+.nl-title { font-size: 13px; font-weight: 700; color: white; margin-bottom: 6px; }
+.nl-sub { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
+.nl-questions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.nl-q {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: rgba(150,180,255,0.9);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: var(--font);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nl-q:hover { background: rgba(255,102,0,0.08); border-color: rgba(255,102,0,0.3); color: white; }
+.nl-q.active { background: rgba(255,102,0,0.1); border-color: rgba(255,102,0,0.4); color: white; }
+.nl-q-icon { font-size: 14px; flex-shrink: 0; }
+.nl-answer {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--orange);
+  border-radius: 4px;
+  padding: 16px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.6;
+  display: none;
+}
+.nl-answer.visible { display: block; }
+.nl-ans-stat { color: var(--orange); font-weight: 700; }
+
+/* PHASE 2 TEASER */
+.p2-banner {
+  background: linear-gradient(135deg, rgba(0,6,42,0.9) 0%, rgba(0,40,80,0.6) 100%);
+  border: 1px solid rgba(255,102,0,0.2);
+  border-radius: 5px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+.p2-title { font-size: 13px; font-weight: 700; color: white; margin-bottom: 4px; }
+.p2-body { font-size: 11px; color: var(--muted); line-height: 1.5; max-width: 620px; }
+.p2-items { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; }
+.p2-item { font-size: 11px; color: rgba(255,102,0,0.7); display: flex; align-items: center; gap: 5px; }
+.p2-item::before { content: '→'; color: rgba(255,102,0,0.4); }
+.p2-btn { background: var(--orange); color: white; border: none; border-radius: 4px; padding: 8px 18px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; margin-left: 24px; flex-shrink: 0; font-family: var(--font); }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .charts-row.c2, .charts-row.wide, .charts-row.narrow, .charts-row.c3 { grid-template-columns: 1fr; }
+  .insights-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(255,102,0,0.3); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-brand">
+    <div class="logo">NVC</div>
+    <div>
+      <div class="header-title">Content Performance Dashboard</div>
+      <div class="header-sub">Nationwide Vehicle Contracts — Phase 1</div>
+    </div>
+  </div>
+  <div class="live-pill"><div class="live-dot"></div> GA4 Live — 90d window</div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-group">
+    <div class="filter-label">Date Range</div>
+    <div class="date-chips">
+      <button class="chip" onclick="setDays(7,this)">7d</button>
+      <button class="chip" onclick="setDays(14,this)">14d</button>
+      <button class="chip" onclick="setDays(28,this)">28d</button>
+      <button class="chip" onclick="setDays(60,this)">60d</button>
+      <button class="chip active" onclick="setDays(90,this)">90d</button>
+    </div>
+  </div>
+  <div class="filter-sep"></div>
+  <div class="filter-group">
+    <div class="filter-label">Content Category</div>
+    <div class="cat-chips">
+      <button class="chip active" onclick="setCat('all',this)">All</button>
+      <button class="chip" onclick="setCat('blog',this)">Blog</button>
+      <button class="chip" onclick="setCat('guides',this)">Guides</button>
+      <button class="chip" onclick="setCat('cars',this)">Cars</button>
+      <button class="chip" onclick="setCat('vans',this)">Vans</button>
+      <button class="chip" onclick="setCat('used',this)">Used</button>
+    </div>
+  </div>
+  <div class="last-sync">GA4 data as of <span>22 Mar 2026</span><span class="data-note">· GSC metrics = illustrative</span></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('discovery',this)">
+    Discovery
+    <span class="tab-desc">Clicks · Impressions · Engagement</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('consideration',this)">
+    Consideration
+    <span class="tab-desc">CTR · Position · Events · Scroll</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('conversion',this)">
+    Conversion
+    <span class="tab-desc">Key Events · Device · Value</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('insights',this)">
+    Insights
+    <span class="tab-desc">Auto-generated · NL queries</span>
+  </button>
+</div>
+
+
+<!-- ===== DISCOVERY ===== -->
+<div id="tab-discovery" class="tab-panel active">
+
+  <div class="section-label">Organic Visibility <span class="gsc-label">GSC — illustrative</span></div>
+  <div class="kpi-grid">
+    <div class="kpi dim">
+      <div class="kpi-label">Total Clicks</div>
+      <div class="kpi-val">—</div>
+      <div class="kpi-delta neutral">GSC connection required</div>
+      <div class="kpi-src">Google Search Console</div>
+    </div>
+    <div class="kpi dim">
+      <div class="kpi-label">Total Impressions</div>
+      <div class="kpi-val">—</div>
+      <div class="kpi-delta neutral">GSC connection required</div>
+      <div class="kpi-src">Google Search Console</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Organic Sessions</div>
+      <div class="kpi-val orange" id="kpi-sessions">616,408</div>
+      <div class="kpi-delta up" id="kpi-sessions-delta">↑ 90-day total</div>
+      <div class="kpi-src">GA4 · Organic Search</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Engagement Rate</div>
+      <div class="kpi-val" id="kpi-engrate">76.1%</div>
+      <div class="kpi-delta up">↑ vs 70% benchmark</div>
+      <div class="kpi-src">GA4 · Organic Search</div>
+    </div>
+  </div>
+
+  <div class="section-label">Session Trend <span class="ga4-label">GA4</span></div>
+  <div class="charts-row wide">
+    <div class="chart-card">
+      <div class="ch-head">
+        <div>
+          <div class="ch-title">Organic Sessions Over Time</div>
+          <div class="ch-sub" id="trend-sublabel">Daily — 90 days · Organic Search channel</div>
+        </div>
+        <span class="ch-tag tag-ga4">GA4</span>
+      </div>
+      <canvas id="sessionTrendChart" height="90"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="ch-head">
+        <div>
+          <div class="ch-title">Sessions by Category</div>
+          <div class="ch-sub">Top landing pages, categorised by URL</div>
+        </div>
+        <span class="ch-tag tag-ga4">GA4</span>
+      </div>
+      <canvas id="catDonut" height="190"></canvas>
+    </div>
+  </div>
+
+  <div class="section-label">Top Pages by Engagement <span class="ga4-label">GA4</span></div>
+  <div class="charts-row c2">
+    <div class="chart-card">
+      <div class="ch-head">
+        <div><div class="ch-title">Engagement Rate by Page</div><div class="ch-sub" id="eng-sub">Top pages — organic landing sessions</div></div>
+        <span class="ch-tag tag-ga4">GA4</span>
+      </div>
+      <canvas id="engRateChart" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="ch-head">
+        <div><div class="ch-title">Sessions by Landing Page</div><div class="ch-sub">Volume comparison — organic only</div></div>
+        <span class="ch-tag tag-ga4">GA4</span>
+      </div>
+      <canvas id="sessionsChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="section-label">Top Pages — Organic <span class="ga4-label">GA4</span></div>
+  <div class="table-card">
+    <table class="data-table" id="disc-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Landing Page</th><th>Category</th>
+          <th style="text-align:right">Sessions</th>
+          <th style="text-align:right">Eng. Rate</th>
+          <th style="text-align:right">Avg Eng. Time</th>
+          <th style="text-align:right">Key Events</th>
+        </tr>
+      </thead>
+      <tbody id="disc-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+
+<!-- ===== CONSIDERATION ===== -->
+<div id="tab-consideration" class="tab-panel">
+
+  <div class="section-label">SERP Performance <span class="gsc-label">GSC — illustrative</span></div>
+  <div class="kpi-grid">
+    <div class="kpi dim">
+      <div class="kpi-label">CTR from SERP</div>
+      <div class="kpi-val">—</div>
+      <div class="kpi-delta neutral">GSC connection required</div>
+      <div class="kpi-src">Google Search Console</div>
+    </div>
+    <div class="kpi dim">
+      <div class="kpi-label">Average Position</div>
+      <div class="kpi-val">—</div>
+      <div class="kpi-delta neutral">GSC connection required</div>
+      <div class="kpi-src">Google Search Console</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Avg Eng. Time</div>
+      <div class="kpi-val orange">2m 42s</div>
+      <div class="kpi-delta up">↑ across organic sessions</div>
+      <div class="kpi-src">GA4 · homepage sample</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total Events</div>
+      <div class="kpi-val" id="kpi-events">14.7M</div>
+      <div class="kpi-delta up">↑ 90-day total</div>
+      <div class="kpi-src">GA4 · Organic Search</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Key Events</div>
+      <div class="kpi-val orange" id="kpi-keyevents">4,486</div>
+      <div class="kpi-delta neutral">↑ 90-day total</div>
+      <div class="kpi-src">GA4 · Organic Search</div>
+    </div>
+  </div>
+
+  <div class="charts-row c2">
+    <div class="chart-card">
+      <div class="ch-head">
+        <div><div class="ch-title">Key Events Over Time</div><div class="ch-sub">Daily organic — 90 days</div></div>
+        <span class="ch-tag tag-ga4">GA4</span>
+      </div>
+      <canvas id="keyEventsTrendChart" height="140"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="ch-head">
+        <div><div class="ch-title">Top Events by Volume</div><div class="ch-sub">Organic sessions — all event types</div></div>
+        <span class="ch-tag tag-ga4">GA4</span>
+      </div>
+      <canvas id="eventsChart" height="140"></canvas>
+    </div>
+  </div>
+
+  <div class="charts-row wide">
+    <div class="chart-card">
+      <div class="ch-head">
+        <div><div class="ch-title">Engaged vs Total Sessions — Weekly</div><div class="ch-sub">Organic Search channel</div></div>
+        <span class="ch-tag tag-ga4">GA4</span>
+      </div>
+      <canvas id="engVsTotalChart" height="120"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="ch-head">
+        <div><div class="ch-title">Scroll Depth</div><div class="ch-sub">scroll events — illustrative thresholds</div></div>
+        <span class="ch-tag tag-ga4">GA4</span>
+      </div>
+      <div style="padding-top:6px">
+        <div class="bar-row"><div class="bar-label">25%</div><div class="bar-track"><div class="bar-fill orange" style="width:91%">91%</div></div></div>
+        <div class="bar-row"><div class="bar-label">50%</div><div class="bar-track"><div class="bar-fill orange" style="width:74%">74%</div></div></div>
+        <div class="bar-row"><div class="bar-label">75%</div><div class="bar-track"><div class="bar-fill dim" style="width:54%">54%</div></div></div>
+        <div class="bar-row"><div class="bar-label">90%</div><div class="bar-track"><div class="bar-fill dim" style="width:39%">39%</div></div></div>
+        <div class="bar-row"><div class="bar-label">100%</div><div class="bar-track"><div class="bar-fill white" style="width:22%">22%</div></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:10px;">Note: scroll event threshold tracking requires GA4 config review</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Top Pages by Key Events <span class="ga4-label">GA4</span></div>
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr><th>#</th><th>Landing Page</th><th>Category</th><th style="text-align:right">Sessions</th><th style="text-align:right">Eng. Rate</th><th style="text-align:right">Key Events</th><th style="text-align:right">KE Rate</th></tr>
+      </thead>
+      <tbody id="cons-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+
+<!-- ===== CONVERSION ===== -->
+<div id="tab-conversion" class="tab-panel">
+
+  <div class="section-label">Key Event Summary <span class="ga4-label">GA4</span></div>
+  <div class="conv-grid">
+    <div class="conv-card">
+      <div class="conv-event">Total Key Events</div>
+      <div class="conv-rate" id="cv-total">4,486</div>
+      <div class="conv-count">90-day organic</div>
+    </div>
+    <div class="conv-card">
+      <div class="conv-event">Key Event Rate</div>
+      <div class="conv-rate">0.73%</div>
+      <div class="conv-count">of organic sessions</div>
+    </div>
+    <div class="conv-card">
+      <div class="conv-event">Desktop KE Rate</div>
+      <div class="conv-rate">1.16%</div>
+      <div class="conv-count">2,089 events · 180k sessions</div>
+    </div>
+    <div class="conv-card">
+      <div class="conv-event">Mobile KE Rate</div>
+      <div class="conv-rate">0.55%</div>
+      <div class="conv-count">2,311 events · 419k sessions</div>
+    </div>
+    <div class="conv-card">
+      <div class="conv-event">Desktop Uplift</div>
+      <div class="conv-rate" style="color:rgba(100,220,100,0.9)">2.1×</div>
+      <div class="conv-count">vs mobile key event rate</div>
+    </div>
+  </div>
+
+  <div style="font-size:11px;color:rgba(255,150,50,0.7);margin-bottom:18px;padding:10px 14px;background:rgba(255,150,50,0.05);border:1px solid rgba(255,150,50,0.15);border-radius:4px;">
+    ⚠ The specific conversion events referenced in the spec (complete_finance_form, lead_order_online, lead_callback_request, lead_enquiry, lead_newsletter_signup) do not appear in the current GA4 event report. These events either aren't firing, are configured under different names, or aren't yet set as key events in the GA4 property. This should be confirmed with the NVC dev/tracking team before Phase 1 launch.
+  </div>
+
+  <div class="charts-row c2">
+    <div class="chart-card">
+      <div class="ch-head">
+        <div><div class="ch-title">Key Events by Device</div><div class="ch-sub">Volume + rate breakdown — organic</div></div>
+        <span class="ch-tag tag-ga4">GA4</span>
+      </div>
+      <canvas id="deviceKEChart" height="160"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="ch-head">
+        <div><div class="ch-title">Device Split — Sessions &amp; Engagement</div><div class="ch-sub">Organic Search · 90 days</div></div>
+        <span class="ch-tag tag-ga4">GA4</span>
+      </div>
+      <div style="padding-top:8px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Session share</div>
+        <div class="bar-row"><div class="bar-label">📱 Mobile</div><div class="bar-track"><div class="bar-fill orange" style="width:68%">68%</div></div><div class="bar-pct">419k</div></div>
+        <div class="bar-row"><div class="bar-label">💻 Desktop</div><div class="bar-track"><div class="bar-fill white" style="width:29%">29%</div></div><div class="bar-pct">180k</div></div>
+        <div class="bar-row"><div class="bar-label">📟 Tablet</div><div class="bar-track"><div class="bar-fill dim" style="width:3%">3%</div></div><div class="bar-pct">17k</div></div>
+        <div style="font-size:11px;color:var(--muted);margin:14px 0 10px;">Engagement rate by device</div>
+        <div class="bar-row"><div class="bar-label">📱 Mobile</div><div class="bar-track"><div class="bar-fill dim" style="width:74.2%">74.2%</div></div></div>
+        <div class="bar-row"><div class="bar-label">💻 Desktop</div><div class="bar-track"><div class="bar-fill orange" style="width:79.7%">79.7%</div></div></div>
+        <div class="bar-row"><div class="bar-label">📟 Tablet</div><div class="bar-track"><div class="bar-fill orange" style="width:85.3%">85.3%</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Top Pages by Key Events <span class="ga4-label">GA4</span></div>
+  <div class="table-card" style="margin-bottom:22px">
+    <table class="data-table">
+      <thead>
+        <tr><th>#</th><th>Landing Page</th><th>Category</th><th style="text-align:right">Sessions</th><th style="text-align:right">Key Events</th><th style="text-align:right">KE Rate</th><th style="text-align:right">Eng. Rate</th></tr>
+      </thead>
+      <tbody id="conv-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="p2-banner">
+    <div>
+      <div class="p2-title">Phase 2 — Advanced Attribution &amp; Production Dashboard</div>
+      <div class="p2-body">The following capabilities require GA4→BigQuery pipeline and are scoped for Phase 2.</div>
+      <div class="p2-items">
+        <div class="p2-item">Per-event conversion rate breakdown (complete_finance_form etc)</div>
+        <div class="p2-item">Page-level conversion value attribution (equiv. UA Page Value)</div>
+        <div class="p2-item">Assisted conversions + multi-touch journeys</div>
+        <div class="p2-item">RankCaddy rank data alongside GSC + GA4</div>
+        <div class="p2-item">Custom production dashboard with auth layer</div>
+      </div>
+    </div>
+    <button class="p2-btn">Phase 2 Scope →</button>
+  </div>
+
+</div>
+
+
+<!-- ===== INSIGHTS ===== -->
+<div id="tab-insights" class="tab-panel">
+
+  <div class="section-label">Auto-generated Insights <span class="ga4-label">GA4 · 90 days</span></div>
+  <div class="insights-grid">
+    <div class="insight-card">
+      <div class="insight-badge">🎯 CRO Priority</div>
+      <div class="insight-title">Mobile converts at less than half the rate of desktop</div>
+      <div class="insight-body">Mobile accounts for 68% of organic sessions but generates a key event rate of just 0.55% — compared to 1.16% on desktop. That's a 2.1× gap. Given the session volume (419k mobile vs 180k desktop), closing even half of this gap would nearly double total key events. A focused mobile UX audit of the top 5 landing pages is likely the highest-leverage action in the next 90 days.</div>
+      <div class="insight-metric">Mobile: 2,311 key events from 419k sessions · Desktop: 2,089 from 180k</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-badge">⚠ Risk Signal</div>
+      <div class="insight-title">Homepage dependence is an organic channel risk</div>
+      <div class="insight-body">The homepage (/) generated 147,716 organic sessions — 24% of all organic traffic. That's more than the next 10 landing pages combined. This level of concentration means a single SERP change or algorithm adjustment could materially impact the entire organic channel. Diversifying organic traffic across more category, guide, and model pages should be a strategic priority.</div>
+      <div class="insight-metric">Homepage: 147,716 sessions · #2 page: /car-leasing/deals at 23,484</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-badge">📝 Content Strategy</div>
+      <div class="insight-title">Blog traffic doesn't convert — a linking strategy could change that</div>
+      <div class="insight-body">Blog content like "Six new driving laws in 2026" and "Best Top Gear episodes" drives significant traffic (5,124 and 3,496 sessions respectively) but generates zero key events. These are informational readers, not buyers — but they're already on the site. A structured internal linking approach that routes editorial traffic toward relevant deal pages could improve the commercial value of this content without creating anything new.</div>
+      <div class="insight-metric">Top 7 blog pages: 17,938 sessions · 0 key events combined</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-badge">🔍 Anomaly</div>
+      <div class="insight-title">Defender Commercial is an outlier van page worth a CRO test</div>
+      <div class="insight-body">The /van-leasing/land-rover/defender-commercial page drove 10,577 sessions — more than 3× any other single van model page. This is almost certainly driven by search volume around the Defender Commercial's 2025 tax treatment changes. With an 87% engagement rate, the content is relevant. This page is likely leaving conversions on the table and warrants a dedicated CTA or landing page optimisation test.</div>
+      <div class="insight-metric">/van-leasing/land-rover/defender-commercial: 10,577 sessions · 87.1% eng rate · 113 key events</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-badge">📅 Seasonal Pattern</div>
+      <div class="insight-title">January is the strongest organic month — plan for it</div>
+      <div class="insight-body">The data shows a clear seasonal uplift in early January — sessions peaked at 8,051 on 13 Jan, and the weeks of 6 Jan and 13 Jan were the highest-traffic weeks in the 90-day window. This aligns with typical new year car research behaviour. Planning content refreshes, promotional pushes, and paid support to coincide with this annual window (late Dec through Jan) could amplify already-strong organic intent.</div>
+      <div class="insight-metric">Peak week (6–12 Jan): 51,115 sessions · vs 90-day weekly avg ~47,400</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-badge">🔧 Tracking Gap</div>
+      <div class="insight-title">Named conversion events are not appearing in GA4</div>
+      <div class="insight-body">The conversion events specified in the Phase 1 brief — complete_finance_form, lead_order_online, lead_callback_request, lead_enquiry, lead_newsletter_signup — do not appear in the current GA4 event data. The property shows 4,486 key events across 90 days but these can't be broken down by conversion type. This should be investigated and resolved before the dashboard is put in front of the NVC team.</div>
+      <div class="insight-metric">Total key events: 4,486 · Named conversion events: 0 detected in top 34 events</div>
+    </div>
+  </div>
+
+  <div class="section-label">Natural Language Queries</div>
+  <div class="nl-panel">
+    <div class="nl-title">Ask the data</div>
+    <div class="nl-sub">Example questions you'd be able to ask in Phase 2 — with pre-computed answers based on the current dataset.</div>
+    <div class="nl-questions">
+      <button class="nl-q" onclick="showAnswer(0,this)"><span class="nl-q-icon">💬</span> Which pages are driving the most key events from organic?</button>
+      <button class="nl-q" onclick="showAnswer(1,this)"><span class="nl-q-icon">💬</span> How does mobile compare to desktop for conversions?</button>
+      <button class="nl-q" onclick="showAnswer(2,this)"><span class="nl-q-icon">💬</span> What's my best performing content category?</button>
+      <button class="nl-q" onclick="showAnswer(3,this)"><span class="nl-q-icon">💬</span> Which blog posts are driving traffic but not converting?</button>
+      <button class="nl-q" onclick="showAnswer(4,this)"><span class="nl-q-icon">💬</span> Where should I focus CRO effort this quarter?</button>
+    </div>
+    <div class="nl-answer" id="nl-answer-box"></div>
+  </div>
+
+</div>
+
+
+<script>
+// =====================================================================
+// RAW DATA — GA4 · Organic Search · 266326004 · 90 days to 22 Mar 2026
+// =====================================================================
+
+const DAILY = [
+  ['2025-12-23',4016,3181,16],['2025-12-24',3074,2359,12],['2025-12-25',2361,1766,8],
+  ['2025-12-26',3423,2664,22],['2025-12-27',4067,3164,19],['2025-12-28',4591,3614,27],
+  ['2025-12-29',6045,4856,46],['2025-12-30',6240,4882,55],['2025-12-31',4865,3764,25],
+  ['2026-01-01',5593,4478,27],['2026-01-02',7565,6021,63],['2026-01-03',6657,5222,59],
+  ['2026-01-04',6547,5054,44],['2026-01-05',7397,5823,74],['2026-01-06',7573,5983,78],
+  ['2026-01-07',7401,5818,61],['2026-01-08',7306,5751,68],['2026-01-09',7341,5650,55],
+  ['2026-01-10',6688,5231,28],['2026-01-11',7186,5625,28],['2026-01-12',7620,6088,90],
+  ['2026-01-13',8051,6305,65],['2026-01-14',7844,6128,54],['2026-01-15',7486,5746,51],
+  ['2026-01-16',6919,5408,60],['2026-01-17',6998,5456,33],['2026-01-18',7203,5628,42],
+  ['2026-01-19',7858,6153,73],['2026-01-20',7665,5903,58],['2026-01-21',7805,5992,70],
+  ['2026-01-22',7911,6041,51],['2026-01-23',7356,5580,50],['2026-01-24',7608,5731,45],
+  ['2026-01-25',7634,5733,43],['2026-01-26',7847,6037,78],['2026-01-27',8118,6293,68],
+  ['2026-01-28',7699,5972,65],['2026-01-29',7986,6106,57],['2026-01-30',7275,5526,64],
+  ['2026-01-31',7402,5652,38],['2026-02-01',7549,5711,33],['2026-02-02',7966,6047,57],
+  ['2026-02-03',7917,6061,49],['2026-02-04',7619,5768,69],['2026-02-05',7736,6047,59],
+  ['2026-02-06',7179,5510,59],['2026-02-07',7079,5338,58],['2026-02-08',7639,5669,51],
+  ['2026-02-09',7605,5826,63],['2026-02-10',7328,5594,59],['2026-02-11',6817,5083,60],
+  ['2026-02-12',6748,5196,57],['2026-02-13',6609,4884,44],['2026-02-14',5381,4132,33],
+  ['2026-02-15',6722,5219,53],['2026-02-16',7457,5551,53],['2026-02-17',6850,5223,74],
+  ['2026-02-18',6542,4922,47],['2026-02-19',7334,5542,42],['2026-02-20',6742,5099,41],
+  ['2026-02-21',6499,4817,49],['2026-02-22',6939,5166,39],['2026-02-23',7602,5750,54],
+  ['2026-02-24',7085,5337,48],['2026-02-25',7414,5679,35],['2026-02-26',7287,5501,46],
+  ['2026-02-27',6890,5035,36],['2026-02-28',6314,4622,35],['2026-03-01',6612,4820,43],
+  ['2026-03-02',7067,5334,74],['2026-03-03',6569,5111,53],['2026-03-04',6636,5110,48],
+  ['2026-03-05',6670,5118,57],['2026-03-06',6673,5046,51],['2026-03-07',6347,4823,39],
+  ['2026-03-08',6670,5163,33],['2026-03-09',7333,5665,70],['2026-03-10',6841,5350,62],
+  ['2026-03-11',6703,5187,51],['2026-03-12',7144,5563,52],['2026-03-13',7088,5352,49],
+  ['2026-03-14',6185,4710,27],['2026-03-15',6780,5248,50],['2026-03-16',7881,6148,68],
+  ['2026-03-17',7449,5711,59],['2026-03-18',6884,5309,59],['2026-03-19',6568,4941,45],
+  ['2026-03-20',6639,4950,52],['2026-03-21',6347,4687,29],['2026-03-22',6252,4676,42],
+];
+
+// [path, sessions, engaged, engRate, engDuration, keyEvents]
+const PAGES = [
+  ['/',147716,121858,0.8249,33069684,1442],
+  ['/car-leasing/deals',23484,20858,0.8882,5962260,150],
+  ['/car-leasing/used/deals',16696,12962,0.7764,3352178,132],
+  ['/van-leasing/land-rover/defender-commercial',10577,9209,0.8707,1305259,113],
+  ['/car-leasing/no-deposit',8620,7784,0.9030,1597616,97],
+  ['/car-leasing/used',5599,5183,0.9257,1420399,43],
+  ['/blog/six-new-driving-laws-coming-into-force-in-2026',5124,4110,0.8021,290276,0],
+  ['/car-leasing',3871,3623,0.9359,1086114,27],
+  ['/car-leasing/renault/5-e-tech',3701,3344,0.9035,460722,23],
+  ['/blog/the-best-top-gear-episodes',3496,2095,0.5993,79439,0],
+  ['/van-leasing/pickup',3341,2969,0.8887,369295,16],
+  ['/car-leasing/electric-hybrid',3300,2957,0.8961,695211,10],
+  ['/car-leasing/land-rover/defender',3170,2776,0.8757,326786,15],
+  ['/van-leasing/ford/ranger',3153,2715,0.8611,338562,33],
+  ['/car-leasing/land-rover',3096,2804,0.9057,439952,19],
+  ['/van-leasing/kia/pv5-cargo',3027,2607,0.8612,329575,16],
+  ['/car-leasing/kia/sportage',3021,2703,0.8947,537282,48],
+  ['/van-leasing',2910,2691,0.9247,597965,65],
+  ['/guides/ask-nvc/car-manufacturer-lead-times-uk',2646,2052,0.7755,146924,0],
+  ['/car-leasing/complete-care',2600,1757,0.6758,260641,12],
+  ['/business-leasing',2559,2326,0.9089,649091,45],
+  ['/car-leasing/4x4-crossover',2502,2149,0.8589,552149,11],
+  ['/blog/2025-pick-up-truck-tax-changes-how-hmrc-s-new-rules-affect-you',2407,1939,0.8056,209814,2],
+  ['/blog/the-best-6-seat-cars',2285,1891,0.8276,119984,0],
+  ['/car-leasing/electric-hybrid/deals',2245,1524,0.6788,431300,7],
+  ['/car-leasing/bmw',2211,1974,0.8928,310571,12],
+  ['/guides/vehicle-maintenance/fuel-calculator',2175,1490,0.6851,97200,0],
+  ['/car-leasing/audi',2134,1904,0.8922,315078,10],
+  ['/car-leasing/below-200',2125,1766,0.8311,296199,3],
+  ['/car-leasing/jaecoo/7',2088,1787,0.8558,196100,12],
+  ['/guides/vehicle-maintenance/average-car-maintenance-costs-by-brand',2036,1549,0.7608,116824,0],
+  ['/van-leasing/below-250',1985,1843,0.9285,304275,34],
+  ['/car-leasing/bmw/ix3',1862,1631,0.8759,232013,6],
+  ['/car-leasing/byd/sealion-7',1761,1565,0.8887,207739,16],
+  ['/car-leasing/nissan/qashqai',1756,1539,0.8764,307700,16],
+  ['/car-leasing/volvo/xc60',1748,1472,0.8421,242808,8],
+  ['/car-leasing/families/guides/pram-friendly-cars',1732,1379,0.7962,111749,0],
+  ['/car-leasing/volkswagen/tiguan',1724,1554,0.9014,229739,7],
+  ['/blog/desperate-for-the-loo-heres-what-you-need-to-know',1626,1147,0.7054,82421,0],
+  ['/car-leasing/seven-seater',1617,1421,0.8788,224122,12],
+  ['/guides/hardest-f1-tracks-2025',1613,1106,0.6857,67540,0],
+  ['/car-leasing/guides/leasing-wear-and-tear-guide',1598,1197,0.7491,125833,1],
+  ['/car-leasing/used/tesla',1573,1467,0.9326,247301,9],
+  ['/car-leasing/byd',1540,1396,0.9065,220091,12],
+  ['/guides/ask-nvc/car-leasing-for-pensioners-explained',1532,1340,0.8747,289542,2],
+  ['/blog/do-minimum-speed-limits-exist-in-the-uk',1519,1059,0.6972,63193,0],
+  ['/car-leasing/volkswagen/id-buzz',1510,1244,0.8238,148898,2],
+  ['/blog/is-driving-in-eco-mode-worth-it',1481,1014,0.6847,123240,0],
+  ['/contract-form-accept',1478,1131,0.7652,233324,18],
+];
+
+const DEVICES = [
+  {device:'mobile',sessions:419217,engaged:311018,engRate:0.7419,keyEvents:2311},
+  {device:'desktop',sessions:180221,engaged:143610,engRate:0.7969,keyEvents:2089},
+  {device:'tablet',sessions:16713,engaged:14261,engRate:0.8533,keyEvents:86},
+];
+
+const EVENTS_DATA = [
+  {name:'scroll',count:4228841},
+  {name:'page_view',count:2828513},
+  {name:'click_button',count:1704556},
+  {name:'click_vehicle_card',count:764649},
+  {name:'view_vehicle_variant',count:574761},
+  {name:'view_search_results',count:450087},
+  {name:'update_search_prices',count:142328},
+  {name:'view_finance_form_step',count:12061},
+];
+
+// =====================================================================
+// CATEGORY CLASSIFICATION
+// =====================================================================
+function getCategory(path) {
+  if (!path || path === '/' || path === '(not set)') return 'other';
+  if (path.startsWith('/blog')) return 'blog';
+  if (path.includes('/guides/') || path.startsWith('/guides')) return 'guides';
+  if (path.startsWith('/car-leasing/used')) return 'used';
+  if (path.startsWith('/car-leasing')) return 'cars';
+  if (path.startsWith('/van-leasing')) return 'vans';
+  return 'other';
+}
+
+function catPill(cat) {
+  const map = {blog:'pill-blog',guides:'pill-guides',cars:'pill-cars',vans:'pill-vans',used:'pill-used',other:'pill-other'};
+  const labels = {blog:'Blog',guides:'Guide',cars:'Cars',vans:'Vans',used:'Used',other:'Other'};
+  return `<span class="cat-pill ${map[cat]||'pill-other'}">${labels[cat]||cat}</span>`;
+}
+
+function shortPath(p, n=42) { return p.length > n ? p.slice(0,n)+'…' : p; }
+function fmtN(n) { return n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(1)+'k' : n.toString(); }
+function fmtSecs(s) { const m=Math.floor(s/60), sec=Math.round(s%60); return `${m}m ${sec}s`; }
+function pct(n) { return (n*100).toFixed(1)+'%'; }
+
+// =====================================================================
+// STATE
+// =====================================================================
+let activeDays = 90;
+let activeCat = 'all';
+let charts = {};
+
+// =====================================================================
+// FILTERED DATA
+// =====================================================================
+function getFilteredDaily() {
+  return DAILY.slice(-activeDays);
+}
+
+function getFilteredPages() {
+  if (activeCat === 'all') return PAGES;
+  return PAGES.filter(p => getCategory(p[0]) === activeCat);
+}
+
+function getDailySums() {
+  const rows = getFilteredDaily();
+  let s=0, e=0, k=0;
+  rows.forEach(r => { s+=r[1]; e+=r[2]; k+=r[3]; });
+  return { sessions:s, engaged:e, keyEvents:k, engRate: s>0 ? e/s : 0 };
+}
+
+// =====================================================================
+// KPI UPDATE
+// =====================================================================
+function updateKPIs() {
+  const {sessions, engaged, keyEvents, engRate} = getDailySums();
+  const el = (id, v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  el('kpi-sessions', fmtN(sessions));
+  el('kpi-sessions-delta', `↑ Last ${activeDays} days`);
+  el('kpi-engrate', pct(engRate));
+  el('kpi-events', fmtN(14700000)); // static total events
+  el('kpi-keyevents', keyEvents.toLocaleString());
+  el('cv-total', keyEvents.toLocaleString());
+  const sublabel = document.getElementById('trend-sublabel');
+  if (sublabel) sublabel.textContent = `Daily — last ${activeDays} days · Organic Search channel`;
+}
+
+// =====================================================================
+// CHARTS — DARK MODE CONFIG
+// =====================================================================
+Chart.defaults.color = 'rgba(255,255,255,0.45)';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'Segoe UI', Arial, sans-serif";
+Chart.defaults.font.size = 11;
+
+const OG = '#ff6600';
+const OG_FILL = 'rgba(255,102,0,0.12)';
+const OG_MID = 'rgba(255,102,0,0.5)';
+const WH = 'rgba(255,255,255,0.75)';
+const WH_FILL = 'rgba(255,255,255,0.05)';
+
+function gradientOrange(ctx) {
+  const g = ctx.createLinearGradient(0,0,0,240);
+  g.addColorStop(0,'rgba(255,102,0,0.25)');
+  g.addColorStop(1,'rgba(255,102,0,0)');
+  return g;
+}
+
+function baseLineOpts(yTickCb) {
+  return {
+    responsive:true,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(0,10,60,0.95)',borderColor:'rgba(255,102,0,0.3)',borderWidth:1,titleColor:'white',bodyColor:'rgba(255,255,255,0.7)',padding:10}},
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{maxTicksLimit:8,maxRotation:0}},
+      y:{grid:{color:'rgba(255,255,255,0.06)'},ticks:{callback:yTickCb||((v)=>fmtN(v))}}
+    }
+  };
+}
+
+function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+// =====================================================================
+// SESSION TREND CHART
+// =====================================================================
+function buildTrendChart() {
+  destroyChart('sessionTrend');
+  const rows = getFilteredDaily();
+  const ctx = document.getElementById('sessionTrendChart').getContext('2d');
+  const labels = rows.map(r => {
+    const d = new Date(r[0]); return `${d.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]}`;
+  });
+  charts['sessionTrend'] = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Sessions',data:rows.map(r=>r[1]),borderColor:OG,backgroundColor:gradientOrange(ctx),fill:true,tension:0.3,pointRadius:0,pointHoverRadius:4,borderWidth:2},
+        {label:'Engaged',data:rows.map(r=>r[2]),borderColor:WH,backgroundColor:WH_FILL,fill:true,tension:0.3,pointRadius:0,pointHoverRadius:4,borderWidth:1.5,borderDash:[4,4]},
+      ]
+    },
+    options:{
+      ...baseLineOpts(),
+      plugins:{
+        legend:{display:true,position:'top',labels:{boxWidth:10,padding:16,color:'rgba(255,255,255,0.6)',usePointStyle:true}},
+        tooltip:{backgroundColor:'rgba(0,10,60,0.95)',borderColor:'rgba(255,102,0,0.3)',borderWidth:1,titleColor:'white',bodyColor:'rgba(255,255,255,0.7)',padding:10}
+      }
+    }
+  });
+}
+
+// =====================================================================
+// CATEGORY DONUT
+// =====================================================================
+function buildCatDonut() {
+  destroyChart('catDonut');
+  const pages = PAGES.filter(p => getCategory(p[0]) !== 'other');
+  const cats = {blog:0,guides:0,cars:0,vans:0,used:0};
+  pages.forEach(p => { const c=getCategory(p[0]); if(cats[c]!==undefined) cats[c]+=p[1]; });
+  const ctx = document.getElementById('catDonut').getContext('2d');
+  charts['catDonut'] = new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:['Cars','Used','Vans','Blog','Guides'],
+      datasets:[{data:[cats.cars,cats.used,cats.vans,cats.blog,cats.guides],backgroundColor:[OG,'rgba(255,102,0,0.5)',WH,'rgba(255,255,255,0.35)','rgba(255,255,255,0.15)'],borderWidth:2,borderColor:'#00062a'}]
+    },
+    options:{responsive:true,cutout:'60%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:10,color:'rgba(255,255,255,0.6)',font:{size:10}}},tooltip:{backgroundColor:'rgba(0,10,60,0.95)',borderWidth:1,borderColor:'rgba(255,102,0,0.3)'}}}
+  });
+}
+
+// =====================================================================
+// ENGAGEMENT RATE CHART
+// =====================================================================
+function buildEngRateChart() {
+  destroyChart('engRate');
+  const pages = getFilteredPages().filter(p => getCategory(p[0]) !== 'other').slice(0,8);
+  const ctx = document.getElementById('engRateChart').getContext('2d');
+  charts['engRate'] = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:pages.map(p=>shortPath(p[0],30)),
+      datasets:[{label:'Engagement Rate',data:pages.map(p=>+(p[3]*100).toFixed(1)),backgroundColor:OG_MID,borderRadius:3,hoverBackgroundColor:OG}]
+    },
+    options:{
+      indexAxis:'y',responsive:true,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(0,10,60,0.95)',borderColor:'rgba(255,102,0,0.3)',borderWidth:1,callbacks:{label:ctx=>`${ctx.parsed.x.toFixed(1)}%`}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.06)'},ticks:{callback:v=>v+'%'},max:100},
+        y:{grid:{display:false},ticks:{font:{size:10},color:'rgba(255,255,255,0.5)'}}
+      }
+    }
+  });
+}
+
+// =====================================================================
+// SESSIONS BAR CHART
+// =====================================================================
+function buildSessionsChart() {
+  destroyChart('sessions');
+  const pages = getFilteredPages().filter(p=>getCategory(p[0])!=='other').sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const ctx = document.getElementById('sessionsChart').getContext('2d');
+  charts['sessions'] = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:pages.map(p=>shortPath(p[0],30)),
+      datasets:[{label:'Sessions',data:pages.map(p=>p[1]),backgroundColor:OG_MID,borderRadius:3,hoverBackgroundColor:OG}]
+    },
+    options:{
+      indexAxis:'y',responsive:true,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(0,10,60,0.95)',borderColor:'rgba(255,102,0,0.3)',borderWidth:1,callbacks:{label:ctx=>fmtN(ctx.parsed.x)+' sessions'}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.06)'},ticks:{callback:v=>fmtN(v)}},
+        y:{grid:{display:false},ticks:{font:{size:10},color:'rgba(255,255,255,0.5)'}}
+      }
+    }
+  });
+}
+
+// =====================================================================
+// KEY EVENTS TREND
+// =====================================================================
+function buildKeyEventsTrendChart() {
+  destroyChart('keyEventsTrend');
+  const rows = getFilteredDaily();
+  const ctx = document.getElementById('keyEventsTrendChart').getContext('2d');
+  const labels = rows.map(r=>{const d=new Date(r[0]);return `${d.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]}`;});
+  charts['keyEventsTrend'] = new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{label:'Key Events',data:rows.map(r=>r[3]),borderColor:OG,backgroundColor:gradientOrange(ctx),fill:true,tension:0.4,pointRadius:0,pointHoverRadius:4,borderWidth:2}]},
+    options:{...baseLineOpts(),plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(0,10,60,0.95)',borderColor:'rgba(255,102,0,0.3)',borderWidth:1,bodyColor:'rgba(255,255,255,0.7)',titleColor:'white',padding:10}}}
+  });
+}
+
+// =====================================================================
+// TOP EVENTS BAR
+// =====================================================================
+function buildEventsChart() {
+  destroyChart('events');
+  const ctx = document.getElementById('eventsChart').getContext('2d');
+  const top = EVENTS_DATA.slice(0,8);
+  charts['events'] = new Chart(ctx,{
+    type:'bar',
+    data:{labels:top.map(e=>e.name),datasets:[{label:'Event Count',data:top.map(e=>e.count),backgroundColor:OG_MID,borderRadius:3,hoverBackgroundColor:OG}]},
+    options:{
+      indexAxis:'y',responsive:true,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(0,10,60,0.95)',borderColor:'rgba(255,102,0,0.3)',borderWidth:1,callbacks:{label:ctx=>fmtN(ctx.parsed.x)+' events'}}},
+      scales:{x:{grid:{color:'rgba(255,255,255,0.06)'},ticks:{callback:v=>fmtN(v)}},y:{grid:{display:false},ticks:{font:{size:10}}}}
+    }
+  });
+}
+
+// =====================================================================
+// ENGAGED vs TOTAL WEEKLY
+// =====================================================================
+function buildEngVsTotalChart() {
+  destroyChart('engVsTotal');
+  // Aggregate to weeks
+  const rows = getFilteredDaily();
+  const weeks = {};
+  rows.forEach(r => {
+    const d = new Date(r[0]);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day===0?-6:1);
+    const mon = new Date(d.setDate(diff));
+    const key = `${mon.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][mon.getMonth()]}`;
+    if(!weeks[key]) weeks[key]={s:0,e:0};
+    weeks[key].s += r[1]; weeks[key].e += r[2];
+  });
+  const labels = Object.keys(weeks);
+  const sessions = Object.values(weeks).map(w=>w.s);
+  const engaged = Object.values(weeks).map(w=>w.e);
+  const ctx = document.getElementById('engVsTotalChart').getContext('2d');
+  charts['engVsTotal'] = new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Total Sessions',data:sessions,backgroundColor:'rgba(255,102,0,0.25)',borderRadius:3},
+      {label:'Engaged Sessions',data:engaged,backgroundColor:OG,borderRadius:3}
+    ]},
+    options:{
+      responsive:true,
+      plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,padding:14,color:'rgba(255,255,255,0.6)',usePointStyle:true}},tooltip:{backgroundColor:'rgba(0,10,60,0.95)',borderColor:'rgba(255,102,0,0.3)',borderWidth:1,bodyColor:'rgba(255,255,255,0.7)',titleColor:'white',mode:'index',intersect:false}},
+      scales:{x:{grid:{display:false},stacked:false},y:{grid:{color:'rgba(255,255,255,0.06)'},ticks:{callback:v=>fmtN(v)}}}
+    }
+  });
+}
+
+// =====================================================================
+// DEVICE KEY EVENTS
+// =====================================================================
+function buildDeviceKEChart() {
+  destroyChart('deviceKE');
+  const ctx = document.getElementById('deviceKEChart').getContext('2d');
+  charts['deviceKE'] = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['Mobile','Desktop','Tablet'],
+      datasets:[
+        {label:'Key Events',data:[2311,2089,86],backgroundColor:[OG_MID,OG,'rgba(255,102,0,0.3)'],borderRadius:4,yAxisID:'y'},
+        {label:'KE Rate (%)',data:[0.55,1.16,0.51],backgroundColor:'transparent',type:'line',borderColor:WH,pointBackgroundColor:WH,pointRadius:5,yAxisID:'y1',tension:0}
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,padding:14,color:'rgba(255,255,255,0.6)',usePointStyle:true}},tooltip:{backgroundColor:'rgba(0,10,60,0.95)',borderColor:'rgba(255,102,0,0.3)',borderWidth:1,bodyColor:'rgba(255,255,255,0.7)',titleColor:'white',mode:'index',intersect:false}},
+      scales:{
+        y:{grid:{color:'rgba(255,255,255,0.06)'},ticks:{callback:v=>fmtN(v)},position:'left'},
+        y1:{grid:{display:false},ticks:{callback:v=>v+'%'},position:'right'}
+      }
+    }
+  });
+}
+
+// =====================================================================
+// TABLES
+// =====================================================================
+function buildDiscTable() {
+  const pages = getFilteredPages().filter(p=>p[0]!=='(not set)').sort((a,b)=>b[1]-a[1]).slice(0,15);
+  document.getElementById('disc-tbody').innerHTML = pages.map((p,i) => {
+    const cat = getCategory(p[0]);
+    const engTime = p[4] && p[1] ? fmtSecs(p[4]/p[1]) : '—';
+    return `<tr>
+      <td class="rank">${i+1}</td>
+      <td class="path" title="${p[0]}">${shortPath(p[0])}</td>
+      <td>${catPill(cat)}</td>
+      <td class="num">${fmtN(p[1])}</td>
+      <td class="num">${pct(p[3])}</td>
+      <td class="num">${engTime}</td>
+      <td class="hi">${p[5]||0}</td>
+    </tr>`;
+  }).join('');
+}
+
+function buildConsTable() {
+  const pages = getFilteredPages().filter(p=>p[0]!=='(not set)').sort((a,b)=>b[5]-a[5]).slice(0,10);
+  document.getElementById('cons-tbody').innerHTML = pages.map((p,i) => {
+    const cat = getCategory(p[0]);
+    const keRate = p[1] > 0 ? ((p[5]/p[1])*100).toFixed(2)+'%' : '0%';
+    return `<tr>
+      <td class="rank">${i+1}</td>
+      <td class="path" title="${p[0]}">${shortPath(p[0])}</td>
+      <td>${catPill(cat)}</td>
+      <td class="num">${fmtN(p[1])}</td>
+      <td class="num">${pct(p[3])}</td>
+      <td class="hi">${p[5]||0}</td>
+      <td class="num">${keRate}</td>
+    </tr>`;
+  }).join('');
+}
+
+function buildConvTable() {
+  const pages = getFilteredPages().filter(p=>p[5]>0 && p[0]!=='(not set)').sort((a,b)=>b[5]-a[5]).slice(0,10);
+  document.getElementById('conv-tbody').innerHTML = pages.map((p,i) => {
+    const cat = getCategory(p[0]);
+    const keRate = p[1] > 0 ? ((p[5]/p[1])*100).toFixed(2)+'%' : '0%';
+    return `<tr>
+      <td class="rank">${i+1}</td>
+      <td class="path" title="${p[0]}">${shortPath(p[0])}</td>
+      <td>${catPill(cat)}</td>
+      <td class="num">${fmtN(p[1])}</td>
+      <td class="hi">${p[5]||0}</td>
+      <td class="num">${keRate}</td>
+      <td class="num">${pct(p[3])}</td>
+    </tr>`;
+  }).join('');
+}
+
+// =====================================================================
+// NATURAL LANGUAGE ANSWERS
+// =====================================================================
+const NL_ANSWERS = [
+  `The top pages by key events from organic are: <span class="nl-ans-stat">(1) Homepage — 1,442</span>, <span class="nl-ans-stat">(2) /car-leasing/deals — 150</span>, <span class="nl-ans-stat">(3) /car-leasing/used/deals — 132</span>, <span class="nl-ans-stat">(4) /van-leasing/land-rover/defender-commercial — 113</span>, <span class="nl-ans-stat">(5) /car-leasing/no-deposit — 97</span>. These five pages account for <span class="nl-ans-stat">~43%</span> of all organic key events. Worth noting: blog and guide content generates traffic but near-zero key events.`,
+
+  `Desktop users convert at <span class="nl-ans-stat">2.1× the rate of mobile</span>. Mobile accounts for <span class="nl-ans-stat">68% of sessions (419k)</span> but only a <span class="nl-ans-stat">0.55% key event rate</span>. Desktop has <span class="nl-ans-stat">29% of sessions (180k)</span> and a <span class="nl-ans-stat">1.16% key event rate</span>. Despite fewer sessions, desktop generates almost as many key events (2,089 vs 2,311). The mobile gap represents the single largest untapped conversion opportunity in the dataset.`,
+
+  `Based on the top 50 organic landing pages, <span class="nl-ans-stat">Cars</span> is the strongest performing category — contributing the most sessions (~80k from top pages) and the highest key event volume. <span class="nl-ans-stat">Vans</span> punches above its weight on key events relative to session volume. <span class="nl-ans-stat">Blog content</span> drives the most editorial traffic but almost no key events — strong for top-of-funnel visibility, poor for commercial contribution.`,
+
+  `The following blog posts are in the top traffic-drivers but show <span class="nl-ans-stat">zero key events</span>: "Six new driving laws in 2026" (5,124 sessions), "Best Top Gear episodes" (3,496), "Best 6-seat cars" (2,285), "Minimum speed limits" (1,519), "Is eco mode worth it" (1,481), "Loo while driving" (1,626). Combined that's <span class="nl-ans-stat">~15,500 sessions with 0 conversions</span>. These are informational readers — better internal linking to deals could improve their commercial value without changing the content.`,
+
+  `<strong>Three priorities stand out:</strong><br><br>
+  <span class="nl-ans-stat">1. Mobile CRO</span> — 2.1× desktop conversion rate gap on 419k sessions. Even closing half the gap would meaningfully increase total key events.<br><br>
+  <span class="nl-ans-stat">2. Defender Commercial page</span> — 10,577 sessions, 87% engagement, 113 key events. The traffic is there; a dedicated CTA test or optimised landing page could materially improve conversion.<br><br>
+  <span class="nl-ans-stat">3. Blog → deals linking</span> — ~15k sessions from blog content with zero key events. A structured internal linking audit of the top 10 blog pages could redirect some of this traffic into the conversion funnel.`,
+];
+
+function showAnswer(idx, btn) {
+  document.querySelectorAll('.nl-q').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const box = document.getElementById('nl-answer-box');
+  box.innerHTML = NL_ANSWERS[idx];
+  box.classList.add('visible');
+}
+
+// =====================================================================
+// FILTER CONTROLS
+// =====================================================================
+function setDays(n, btn) {
+  activeDays = n;
+  document.querySelectorAll('.date-chips .chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  refreshAll();
+}
+
+function setCat(cat, btn) {
+  activeCat = cat;
+  document.querySelectorAll('.cat-chips .chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  refreshTables();
+  refreshCategoryCharts();
+}
+
+function refreshAll() {
+  updateKPIs();
+  buildTrendChart();
+  buildKeyEventsTrendChart();
+  buildEngVsTotalChart();
+  refreshTables();
+}
+
+function refreshTables() {
+  buildDiscTable();
+  buildConsTable();
+  buildConvTable();
+  const sub = document.getElementById('eng-sub');
+  if (sub) sub.textContent = activeCat === 'all' ? 'Top pages — organic landing sessions' : `Filtered: ${activeCat} pages`;
+}
+
+function refreshCategoryCharts() {
+  buildEngRateChart();
+  buildSessionsChart();
+}
+
+// =====================================================================
+// TAB SWITCHING
+// =====================================================================
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// =====================================================================
+// INIT
+// =====================================================================
+(function init() {
+  updateKPIs();
+  buildTrendChart();
+  buildCatDonut();
+  buildEngRateChart();
+  buildSessionsChart();
+  buildKeyEventsTrendChart();
+  buildEventsChart();
+  buildEngVsTotalChart();
+  buildDeviceKEChart();
+  buildDiscTable();
+  buildConsTable();
+  buildConvTable();
+})();
+</script>
+</body>
+</html>
