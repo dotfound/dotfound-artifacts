@@ -6,6 +6,14 @@
       "type": "other",
       "date": "2026-03-24",
       "has_password": false
+    },
+    {
+      "slug": "84e36ef87755",
+      "title": "NVC Content Dashboard",
+      "type": "dashboard",
+      "date": "2026-03-24",
+      "has_password": true,
+      "password": "nvc-demo"
     }
   ]
 }
