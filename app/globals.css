@@ -1,3 +1,90 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* Backgrounds */
+  --navy: #002040;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --surface-active: rgba(167, 139, 250, 0.08);
+
+  /* Brand colours */
+  --coral: #FF6B6B;
+  --cyan: #22D3EE;
+  --purple: #a78bfa;
+  --light-blue: #cee4ff;
+  --off-white: #f2f2f2;
+  --grey: #767676;
+
+  /* Text colours */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-body: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.45);
+  --text-accent: #22D3EE;
+  --text-on-coral: #002040;
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.09);
+  --border-hover: rgba(167, 139, 250, 0.3);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--navy);
+  color: var(--text-body);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+/* Staggered fade-in animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  opacity: 0;
+  animation: fadeUp 0.5s ease forwards;
+}
+
+.animate-in:nth-child(1) { animation-delay: 0s; }
+.animate-in:nth-child(2) { animation-delay: 0.06s; }
+.animate-in:nth-child(3) { animation-delay: 0.12s; }
+.animate-in:nth-child(4) { animation-delay: 0.18s; }
+.animate-in:nth-child(5) { animation-delay: 0.24s; }
+.animate-in:nth-child(6) { animation-delay: 0.3s; }
+.animate-in:nth-child(7) { animation-delay: 0.36s; }
+.animate-in:nth-child(8) { animation-delay: 0.42s; }
+.animate-in:nth-child(9) { animation-delay: 0.48s; }
+
+/* Header fade */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-header {
+  opacity: 0;
+  animation: fadeDown 0.5s ease forwards;
+}

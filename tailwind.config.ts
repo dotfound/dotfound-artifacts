@@ -10,14 +10,21 @@ const config: Config = {
       colors: {
         brand: {
           navy: '#002040',
-          purple: '#5400ff',
-          lightblue: '#cee4ff',
-          offwhite: '#f2f2f2',
+          coral: '#FF6B6B',
+          cyan: '#22D3EE',
+          purple: '#a78bfa',
+          'light-blue': '#cee4ff',
+          'off-white': '#f2f2f2',
           grey: '#767676',
         },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
+      },
+      borderRadius: {
+        sm: '6px',
+        md: '8px',
+        lg: '12px',
       },
     },
   },

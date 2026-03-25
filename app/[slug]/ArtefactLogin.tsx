@@ -35,32 +35,33 @@ export default function ArtefactLogin({
   }
 
   return (
-    <main className="min-h-screen bg-[#002040] flex items-center justify-center px-4">
+    <main className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-white text-base font-light">{title}</h1>
-          <p className="text-[#cee4ff] text-sm mt-1 font-light">dotfound artefacts</p>
+          <h1 className="text-[rgba(255,255,255,0.95)] text-base font-medium">{title}</h1>
+          <p className="text-[rgba(255,255,255,0.35)] text-sm mt-1.5 font-light">This artefact is password protected</p>
         </div>
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl p-8 space-y-4">
+        <form onSubmit={handleSubmit} className="rounded-lg border border-[rgba(255,255,255,0.09)] bg-[rgba(255,255,255,0.04)] p-8 space-y-5">
           <div>
-            <label className="block text-[#002040] text-sm font-medium mb-2">
+            <label className="block text-[rgba(255,255,255,0.6)] text-xs font-light mb-2 tracking-wide">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full border border-[#f2f2f2] rounded-lg px-4 py-3 text-[#002040] text-sm focus:outline-none focus:border-[#5400ff] transition-colors"
+              className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.09)] rounded-md px-4 py-3 text-[rgba(255,255,255,0.9)] text-sm font-light focus:outline-none focus:border-[#22D3EE] transition-colors placeholder:text-[rgba(255,255,255,0.2)]"
+              placeholder="Enter password"
               autoFocus
             />
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-[#FF6B6B] text-sm font-light">{error}</p>}
           <button
             type="submit"
             disabled={loading || !password}
-            className="w-full bg-[#5400ff] text-white py-3 rounded-lg text-sm font-medium hover:bg-[#4400cc] transition-colors disabled:opacity-40"
+            className="w-full bg-[#FF6B6B] text-[#002040] py-3 rounded-md text-sm font-medium hover:opacity-85 transition-opacity disabled:opacity-30"
           >
-            {loading ? 'Checking…' : 'Enter'}
+            {loading ? 'Checking...' : 'Enter'}
           </button>
         </form>
       </div>

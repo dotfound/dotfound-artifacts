@@ -36,19 +36,26 @@ export default async function ArtefactPage({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#002040]">
-      <div className="flex items-center gap-4 px-5 py-2.5 shrink-0">
+    <div className="flex flex-col h-screen">
+      {/* Viewer nav bar */}
+      <div className="flex items-center gap-4 px-5 py-2.5 shrink-0 border-b border-[rgba(255,255,255,0.06)] bg-[#002040]">
         <Link
           href="/"
-          className="text-[#cee4ff] text-xs font-light hover:text-white transition-colors"
+          className="flex items-center gap-1.5 text-[rgba(255,255,255,0.5)] text-xs font-light hover:text-[#22D3EE] transition-colors duration-200"
         >
-          ← library
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>Library</span>
         </Link>
-        <span className="text-[#767676] text-xs font-light">{artefact.title}</span>
+        <span className="text-[rgba(255,255,255,0.06)]">|</span>
+        <span className="text-[rgba(255,255,255,0.7)] text-xs font-light truncate">{artefact.title}</span>
       </div>
+
+      {/* Iframe */}
       <iframe
         src={`/a/${slug}.html`}
-        className="flex-1 w-full border-0 bg-white"
+        className="flex-1 w-full border-0"
         title={artefact.title}
       />
     </div>
