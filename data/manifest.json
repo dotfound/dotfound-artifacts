@@ -21,6 +21,13 @@
       "type": "other",
       "date": "2026-03-25",
       "has_password": false
+    },
+    {
+      "slug": "727b59a06383",
+      "title": "Dummy Combined Search Dashboard",
+      "type": "dashboard",
+      "date": "2026-03-25",
+      "has_password": false
     }
   ]
 }
