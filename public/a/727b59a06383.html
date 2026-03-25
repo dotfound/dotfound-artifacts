@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paid + Organic Search Dashboard | dotfound</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+:root {
+  --navy: #002040;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --surface-active: rgba(167, 139, 250, 0.08);
+  --coral: #FF6B6B;
+  --cyan: #22D3EE;
+  --purple: #a78bfa;
+  --light-blue: #cee4ff;
+  --off-white: #f2f2f2;
+  --grey: #767676;
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-body: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.45);
+  --text-accent: #22D3EE;
+  --text-on-coral: #002040;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-hover: rgba(167, 139, 250, 0.3);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  --font-mono: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --max-width-dashboard: 1200px;
+  --padding-page: 2rem;
+}
+
+@media (min-width: 1024px) {
+  :root { --padding-page: 5rem; }
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--navy);
+  color: var(--text-body);
+  font-weight: 300;
+  line-height: 1.6;
+  font-size: 16px;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: var(--max-width-dashboard);
+  margin: 0 auto;
+  padding: 0 var(--padding-page);
+}
+
+/* Header */
+.page-header {
+  padding: 1.25rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  max-width: var(--max-width-dashboard);
+  margin: 0 auto;
+}
+.page-header .logo svg { height: 20px; width: auto; }
+.page-header .meta { font-size: 0.8rem; color: var(--text-muted); font-weight: 400; }
+
+/* Section labels */
+.section-label {
+  font-size: 0.7rem; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.15em; color: var(--cyan); margin-bottom: 0.75rem;
+}
+
+h1 {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 500; color: var(--text-primary);
+  line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1rem;
+}
+h2 {
+  font-size: 1.25rem; font-weight: 500; color: var(--text-primary);
+  line-height: 1.25; letter-spacing: -0.01em; margin-bottom: 0.75rem;
+}
+h3 {
+  font-size: 0.95rem; font-weight: 500; color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+/* Grid */
+.grid { display: grid; gap: 1.5rem; }
+.grid--2 { grid-template-columns: repeat(2, 1fr); }
+.grid--3 { grid-template-columns: repeat(3, 1fr); }
+.grid--4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 768px) {
+  .grid--2, .grid--3, .grid--4 { grid-template-columns: 1fr; }
+}
+
+/* Metric cards */
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 2rem;
+}
+.metric-card .label {
+  font-size: 0.75rem; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.5rem;
+}
+.metric-card .value {
+  font-size: 2rem; font-weight: 600; color: var(--text-primary); line-height: 1.1;
+}
+.metric-card .change { font-size: 0.8rem; font-weight: 400; margin-top: 0.25rem; }
+.metric-card .change.positive { color: #4dff88; }
+.metric-card .change.negative { color: #ff4d4d; }
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+th {
+  text-align: left; font-weight: 500; color: var(--text-primary);
+  padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+td {
+  padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.06);
+  color: var(--text-body);
+}
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* Badges */
+.badge {
+  display: inline-block; padding: 0.15rem 0.6rem;
+  border-radius: 9999px; font-size: 0.7rem; font-weight: 500; letter-spacing: 0.02em;
+}
+.badge--coral { background: rgba(255,107,107,0.15); color: var(--coral); }
+.badge--cyan { background: rgba(34,211,238,0.15); color: var(--cyan); }
+.badge--purple { background: rgba(167,139,250,0.15); color: var(--purple); }
+.badge--blue { background: rgba(206,228,255,0.15); color: var(--light-blue); }
+.badge--muted { background: rgba(255,255,255,0.08); color: var(--text-muted); }
+.badge--green { background: rgba(77,255,136,0.15); color: #4dff88; }
+
+/* Filter bar */
+select {
+  font-family: var(--font-family); font-size: 0.85rem; font-weight: 400;
+  color: var(--text-body); background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem; outline: none; transition: border-color 0.2s;
+}
+select:focus { border-color: var(--cyan); }
+
+/* Opportunity cards */
+.opportunity {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 2rem;
+  border-left: 3px solid var(--cyan);
+}
+.opportunity .opp-label {
+  font-size: 0.7rem; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.1em; margin-bottom: 0.5rem;
+}
+.opportunity .opp-label.high { color: var(--coral); }
+.opportunity .opp-label.medium { color: var(--cyan); }
+.opportunity .opp-label.low { color: var(--purple); }
+.opportunity.high { border-left-color: var(--coral); }
+.opportunity.medium { border-left-color: var(--cyan); }
+.opportunity.low { border-left-color: var(--purple); }
+.opportunity p { font-size: 0.875rem; line-height: 1.55; color: var(--text-body); }
+.opportunity p strong { color: var(--text-primary); font-weight: 500; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { opacity: 0; animation: fadeUp 0.6s ease forwards; }
+.animate-in:nth-child(2) { animation-delay: 0.1s; }
+.animate-in:nth-child(3) { animation-delay: 0.2s; }
+.animate-in:nth-child(4) { animation-delay: 0.3s; }
+
+.section { margin-top: 3rem; }
+.section:first-of-type { margin-top: 2.5rem; }
+
+/* Footer */
+.page-footer {
+  padding: 2rem; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 4rem; max-width: var(--max-width-dashboard);
+  margin-left: auto; margin-right: auto;
+}
+.page-footer .logo svg { height: 16px; width: auto; opacity: 0.5; }
+.page-footer .text { font-size: 0.75rem; color: var(--text-muted); }
+
+.table-scroll { overflow-x: auto; }
+.text-right { text-align: right; }
+.text-muted { color: var(--text-muted); }
+
+.channel-tag {
+  display: inline-block; padding: 0.1rem 0.5rem; border-radius: 4px;
+  font-size: 0.7rem; font-weight: 500;
+}
+.channel-tag.organic { background: rgba(206,228,255,0.15); color: var(--light-blue); }
+.channel-tag.paid { background: rgba(255,107,107,0.15); color: var(--coral); }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="page-header">
+  <div class="logo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 581.32 111.26" fill="#fff"><g><path d="M57.12,44.39c-1.94-2.53-4.27-4.64-6.97-6.3-4.12-2.54-8.88-3.82-14.14-3.82-6.66,0-12.83,1.74-18.35,5.18-5.5,3.42-9.87,8.13-12.99,14-3.1,5.85-4.68,12.32-4.68,19.24s1.57,12.96,4.67,18.86c3.11,5.9,7.44,10.71,12.89,14.29,5.47,3.6,11.68,5.42,18.45,5.42,5.26,0,10.02-1.29,14.14-3.82,2.7-1.66,5.03-3.77,6.97-6.3v8.47h15.22V0h-15.22V44.39Zm-5.45,11.27c3.62,4.37,5.45,10.21,5.45,17.34s-1.83,12.76-5.45,17.03c-3.6,4.26-8.62,6.33-15.36,6.33s-11.67-2.19-15.42-6.69c-3.77-4.52-5.67-10.27-5.67-17.11s1.93-12.5,5.73-16.86c3.81-4.37,8.83-6.49,15.37-6.49s11.74,2.11,15.35,6.46"/><path d="M137,39.45c-5.47-3.44-11.72-5.18-18.58-5.18s-13.31,1.77-18.88,5.25c-5.56,3.48-9.93,8.22-12.99,14.08-3.05,5.84-4.6,12.36-4.6,19.38,0,6.63,1.57,12.95,4.68,18.79,3.11,5.86,7.48,10.62,12.97,14.14,5.52,3.54,11.85,5.34,18.82,5.34s13.13-1.82,18.6-5.42c5.45-3.57,9.76-8.39,12.82-14.3,3.05-5.9,4.6-12.24,4.6-18.85s-1.55-13.39-4.6-19.23c-3.06-5.87-7.38-10.58-12.84-14.01m-18.58,56.9c-6.63,0-11.68-2.15-15.44-6.56-3.76-4.42-5.67-10.07-5.67-16.8s1.88-12.83,5.6-17.26c3.71-4.41,8.77-6.55,15.5-6.55s11.48,2.09,15.13,6.4c3.66,4.32,5.52,10.03,5.52,16.96s-1.86,12.6-5.54,17.12c-3.65,4.5-8.59,6.68-15.11,6.68"/><path d="M193.13,95.9c-3.82,0-6.47-.92-7.88-2.75-1.5-1.93-2.25-5.58-2.25-10.84V50.24h17.44v-14.16h-17.44V13.07h-14.31v14.52c0,2.85-.6,5.02-1.78,6.45-1.11,1.35-3.41,2.03-6.85,2.03h-4.6v14.16h12.18v34.93c0,8.76,1.93,15.24,5.73,19.26,3.82,4.04,9.71,6.09,17.51,6.09,3.36,0,6.99-.31,10.75-.92l1.22-.2v-14.47l-1.65,.24c-3.41,.49-6.13,.74-8.06,.74"/><path d="M245.31,.49C243.87,.16,242.17,0,240.26,0c-4.01,0-7.84,.88-11.39,2.62-3.59,1.77-6.51,4.42-8.7,7.9-2.19,3.47-3.3,7.6-3.3,12.27v13.28h-10.97v14.16h11.12v59.38h15.37V50.23h15.93v-14.16h-16.09v-12.68c0-3.33,.95-5.59,2.9-6.93,2.13-1.44,4.44-2.15,7.07-2.15,2.97,0,4.17,.38,4.62,.61l2.09,1.04V2.2l-.43-.43c-.53-.53-1.46-.9-3.19-1.29"/><path d="M305.5,39.45c-5.47-3.44-11.72-5.18-18.58-5.18s-13.31,1.77-18.88,5.25c-5.56,3.48-9.93,8.22-12.99,14.08-3.05,5.84-4.6,12.36-4.6,19.38,0,6.63,1.57,12.95,4.68,18.79,3.11,5.86,7.48,10.62,12.97,14.14,5.52,3.54,11.85,5.34,18.82,5.34s13.13-1.82,18.6-5.42c5.45-3.57,9.76-8.39,12.82-14.3,3.05-5.9,4.6-12.24,4.6-18.85s-1.55-13.39-4.6-19.23c-3.06-5.87-7.38-10.58-12.84-14.01m-18.58,56.9c-6.63,0-11.68-2.15-15.43-6.56-3.76-4.42-5.67-10.07-5.67-16.8s1.88-12.83,5.6-17.26c3.71-4.41,8.77-6.55,15.5-6.55s11.48,2.09,15.13,6.4c3.66,4.32,5.52,10.03,5.52,16.96s-1.86,12.6-5.54,17.12c-3.65,4.5-8.59,6.68-15.11,6.68"/><path d="M378.81,73.74c0,6.96-1.57,12.56-4.67,16.64-3.04,4.01-7.29,5.97-12.98,5.97-5.05,0-8.71-1.79-11.21-5.46-2.57-3.79-3.88-8.7-3.88-14.59V36.07h-15.37v43.24c0,9.3,2.3,17,6.84,22.9,4.63,6.01,11.26,9.06,19.71,9.06,7.02,0,12.57-1.63,16.47-4.84,2.03-1.66,3.73-3.36,5.08-5.1v8.28h15.22V36.07h-15.22v37.67Z"/><path d="M441.59,34.27c-7.03,0-12.57,1.63-16.47,4.84-2.03,1.67-3.73,3.38-5.08,5.14v-8.17h-15.37V109.61h15.37v-37.82c0-6.96,1.57-12.55,4.67-16.64,3.04-4.01,7.29-5.97,12.97-5.97,5.05,0,8.71,1.78,11.21,5.45,2.58,3.8,3.89,8.71,3.89,14.6v40.37h15.37v-43.38c0-9.3-2.3-17-6.84-22.9-4.63-6.01-11.26-9.06-19.71-9.06"/><path d="M533.03,44.39c-1.94-2.53-4.27-4.64-6.97-6.3-4.12-2.54-8.87-3.82-14.13-3.82-6.66,0-12.83,1.74-18.35,5.18-5.5,3.42-9.87,8.13-12.99,14-3.1,5.85-4.68,12.32-4.68,19.24s1.57,12.96,4.67,18.86c3.11,5.9,7.44,10.71,12.89,14.29,5.47,3.6,11.68,5.42,18.46,5.42,5.26,0,10.01-1.29,14.13-3.82,2.7-1.66,5.03-3.77,6.97-6.3v8.47h15.22V0h-15.22V44.39Zm-5.45,11.27c3.62,4.37,5.45,10.21,5.45,17.34s-1.83,12.76-5.45,17.03c-3.6,4.26-8.62,6.33-15.35,6.33s-11.67-2.19-15.42-6.69c-3.77-4.52-5.68-10.27-5.68-17.11s1.93-12.5,5.73-16.86c3.81-4.37,8.83-6.49,15.37-6.49s11.74,2.11,15.34,6.46"/><path d="M578.2,91.6h0c-2.08-2.14-4.65-3.22-7.65-3.22s-5.72,1.08-7.8,3.22c-2.07,2.13-3.11,4.76-3.11,7.85s1.05,5.57,3.11,7.7c2.08,2.13,4.7,3.22,7.8,3.22s5.57-1.08,7.65-3.22c2.07-2.13,3.12-4.71,3.12-7.7s-1.05-5.72-3.12-7.85"/></g></svg>
+  </div>
+  <div class="meta">Last 30 days &middot; 24 Feb &ndash; 25 Mar 2026</div>
+</header>
+
+<div class="container">
+
+  <!-- Title -->
+  <div class="section">
+    <div class="section-label">Search Performance</div>
+    <h1>Paid + Organic Search Dashboard</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Combined view of Google Ads and Google Search Console data, joined on landing page URL. Dummy data for demonstration.</p>
+
+    <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 2rem;">
+      <select id="filterPeriod">
+        <option>Last 30 days</option>
+        <option>Last 7 days</option>
+        <option>Last 90 days</option>
+      </select>
+      <select id="filterChannel">
+        <option value="all">All Channels</option>
+        <option value="organic">Organic Only</option>
+        <option value="paid">Paid Only</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Organic KPIs -->
+  <div class="section">
+    <div class="section-label">Organic Search</div>
+    <div class="grid grid--4">
+      <div class="metric-card animate-in">
+        <div class="label">Organic Clicks</div>
+        <div class="value">34,218</div>
+        <div class="change positive">+8.4% vs prior period</div>
+      </div>
+      <div class="metric-card animate-in">
+        <div class="label">Organic Impressions</div>
+        <div class="value">892K</div>
+        <div class="change positive">+14.2% vs prior period</div>
+      </div>
+      <div class="metric-card animate-in">
+        <div class="label">Avg. Position</div>
+        <div class="value">12.3</div>
+        <div class="change negative">+1.8 vs prior period</div>
+      </div>
+      <div class="metric-card animate-in">
+        <div class="label">Organic CTR</div>
+        <div class="value">3.84%</div>
+        <div class="change negative">-0.21pp vs prior period</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paid KPIs -->
+  <div class="section">
+    <div class="section-label">Paid Search</div>
+    <div class="grid grid--4">
+      <div class="metric-card animate-in">
+        <div class="label">Paid Clicks</div>
+        <div class="value">12,847</div>
+        <div class="change positive">+5.1% vs prior period</div>
+      </div>
+      <div class="metric-card animate-in">
+        <div class="label">Ad Spend</div>
+        <div class="value">&pound;18,420</div>
+        <div class="change negative">+12.3% vs prior period</div>
+      </div>
+      <div class="metric-card animate-in">
+        <div class="label">Avg. CPC</div>
+        <div class="value">&pound;1.43</div>
+        <div class="change negative">+&pound;0.09 vs prior period</div>
+      </div>
+      <div class="metric-card animate-in">
+        <div class="label">Conversion Rate</div>
+        <div class="value">4.21%</div>
+        <div class="change positive">+0.33pp vs prior period</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Combined KPIs -->
+  <div class="section">
+    <div class="section-label">Combined</div>
+    <div class="grid grid--3">
+      <div class="metric-card animate-in">
+        <div class="label">Total Search Clicks</div>
+        <div class="value">47,065</div>
+        <div class="change positive">+7.4% vs prior period</div>
+      </div>
+      <div class="metric-card animate-in">
+        <div class="label">Blended CPA</div>
+        <div class="value">&pound;22.40</div>
+        <div class="change positive">-&pound;1.80 vs prior period</div>
+      </div>
+      <div class="metric-card animate-in">
+        <div class="label">Conversions (All Search)</div>
+        <div class="value">822</div>
+        <div class="change positive">+11.2% vs prior period</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trend Chart -->
+  <div class="section">
+    <div class="section-label">Trends</div>
+    <h2>Daily Search Traffic &mdash; Paid vs Organic</h2>
+    <div class="card" style="padding: 1.5rem;">
+      <canvas id="trendChart" height="280"></canvas>
+    </div>
+  </div>
+
+  <!-- Spend vs Organic Clicks Chart -->
+  <div class="section">
+    <div class="grid grid--2">
+      <div>
+        <h2>Click Share by Channel</h2>
+        <div class="card" style="padding: 1.5rem; display: flex; align-items: center; justify-content: center; min-height: 280px;">
+          <canvas id="shareChart" width="260" height="260"></canvas>
+        </div>
+      </div>
+      <div>
+        <h2>CPC vs Organic Position by Keyword</h2>
+        <div class="card" style="padding: 1.5rem; min-height: 280px;">
+          <canvas id="scatterChart" height="260"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Opportunities -->
+  <div class="section">
+    <div class="section-label">Opportunities</div>
+    <h2>Actions to Improve the Combined Strategy</h2>
+    <div class="grid grid--2" style="margin-top: 1rem;">
+
+      <div class="opportunity high animate-in">
+        <div class="opp-label high">High Priority</div>
+        <p><strong>Cut paid spend on /services/analytics.</strong> This page ranks organically in position 3.2 with a 6.1% CTR, yet you're spending &pound;1,840/mo on ads for the same keywords. The organic listing is already capturing high-intent traffic. Pausing or reducing bids here could save budget without losing volume.</p>
+      </div>
+
+      <div class="opportunity high animate-in">
+        <div class="opp-label high">High Priority</div>
+        <p><strong>Boost organic content on /solutions/automation.</strong> This page has strong paid conversion (5.8%) but sits at organic position 18.4 with almost no organic clicks. A targeted content refresh and internal linking push could pull this into page one, reducing long-term reliance on ad spend for a high-converting term.</p>
+      </div>
+
+      <div class="opportunity medium animate-in">
+        <div class="opp-label medium">Medium Priority</div>
+        <p><strong>Align ad copy with top-performing organic titles.</strong> The organic listing for /blog/ga4-migration-guide has a 7.2% CTR at position 5.1, significantly outperforming the ad variant (3.1% CTR). Test the organic title and meta description language in your ad headlines to lift paid CTR.</p>
+      </div>
+
+      <div class="opportunity medium animate-in">
+        <div class="opp-label medium">Medium Priority</div>
+        <p><strong>Increase bids on /pricing where organic is weak.</strong> The pricing page sits at organic position 42 and captures negligible organic traffic. Since this is a high-intent, bottom-funnel page, increasing paid visibility here makes sense until organic authority improves.</p>
+      </div>
+
+      <div class="opportunity low animate-in">
+        <div class="opp-label low">Lower Priority</div>
+        <p><strong>Review keyword cannibalisation on branded terms.</strong> Multiple pages are competing for "dotfound analytics" in both channels. Consolidating the landing page strategy and adding negative keywords in Ads for the weaker variants would tighten the funnel and reduce wasted impressions.</p>
+      </div>
+
+      <div class="opportunity low animate-in">
+        <div class="opp-label low">Lower Priority</div>
+        <p><strong>Build content around long-tail queries with low CPC.</strong> Several queries like "server-side tracking setup guide" and "ga4 consent mode implementation" have CPCs under &pound;0.40 but no organic presence. These are strong candidates for blog content that could capture traffic at zero cost once indexed.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Combined Data Table -->
+  <div class="section">
+    <div class="section-label">Page-Level Data</div>
+    <h2>Landing Pages &mdash; Combined Search Performance</h2>
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Landing Page</th>
+              <th class="text-right">Org. Clicks</th>
+              <th class="text-right">Org. Impr.</th>
+              <th class="text-right">Avg. Pos.</th>
+              <th class="text-right">Org. CTR</th>
+              <th class="text-right">Paid Clicks</th>
+              <th class="text-right">Ad Spend</th>
+              <th class="text-right">CPC</th>
+              <th class="text-right">Conv.</th>
+              <th>Signal</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer class="page-footer">
+  <div class="logo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 581.32 111.26" fill="#fff" style="opacity: 0.5;"><g><path d="M57.12,44.39c-1.94-2.53-4.27-4.64-6.97-6.3-4.12-2.54-8.88-3.82-14.14-3.82-6.66,0-12.83,1.74-18.35,5.18-5.5,3.42-9.87,8.13-12.99,14-3.1,5.85-4.68,12.32-4.68,19.24s1.57,12.96,4.67,18.86c3.11,5.9,7.44,10.71,12.89,14.29,5.47,3.6,11.68,5.42,18.45,5.42,5.26,0,10.02-1.29,14.14-3.82,2.7-1.66,5.03-3.77,6.97-6.3v8.47h15.22V0h-15.22V44.39Zm-5.45,11.27c3.62,4.37,5.45,10.21,5.45,17.34s-1.83,12.76-5.45,17.03c-3.6,4.26-8.62,6.33-15.36,6.33s-11.67-2.19-15.42-6.69c-3.77-4.52-5.67-10.27-5.67-17.11s1.93-12.5,5.73-16.86c3.81-4.37,8.83-6.49,15.37-6.49s11.74,2.11,15.35,6.46"/><path d="M137,39.45c-5.47-3.44-11.72-5.18-18.58-5.18s-13.31,1.77-18.88,5.25c-5.56,3.48-9.93,8.22-12.99,14.08-3.05,5.84-4.6,12.36-4.6,19.38,0,6.63,1.57,12.95,4.68,18.79,3.11,5.86,7.48,10.62,12.97,14.14,5.52,3.54,11.85,5.34,18.82,5.34s13.13-1.82,18.6-5.42c5.45-3.57,9.76-8.39,12.82-14.3,3.05-5.9,4.6-12.24,4.6-18.85s-1.55-13.39-4.6-19.23c-3.06-5.87-7.38-10.58-12.84-14.01m-18.58,56.9c-6.63,0-11.68-2.15-15.44-6.56-3.76-4.42-5.67-10.07-5.67-16.8s1.88-12.83,5.6-17.26c3.71-4.41,8.77-6.55,15.5-6.55s11.48,2.09,15.13,6.4c3.66,4.32,5.52,10.03,5.52,16.96s-1.86,12.6-5.54,17.12c-3.65,4.5-8.59,6.68-15.11,6.68"/><path d="M193.13,95.9c-3.82,0-6.47-.92-7.88-2.75-1.5-1.93-2.25-5.58-2.25-10.84V50.24h17.44v-14.16h-17.44V13.07h-14.31v14.52c0,2.85-.6,5.02-1.78,6.45-1.11,1.35-3.41,2.03-6.85,2.03h-4.6v14.16h12.18v34.93c0,8.76,1.93,15.24,5.73,19.26,3.82,4.04,9.71,6.09,17.51,6.09,3.36,0,6.99-.31,10.75-.92l1.22-.2v-14.47l-1.65,.24c-3.41,.49-6.13,.74-8.06,.74"/><path d="M245.31,.49C243.87,.16,242.17,0,240.26,0c-4.01,0-7.84,.88-11.39,2.62-3.59,1.77-6.51,4.42-8.7,7.9-2.19,3.47-3.3,7.6-3.3,12.27v13.28h-10.97v14.16h11.12v59.38h15.37V50.23h15.93v-14.16h-16.09v-12.68c0-3.33,.95-5.59,2.9-6.93,2.13-1.44,4.44-2.15,7.07-2.15,2.97,0,4.17,.38,4.62,.61l2.09,1.04V2.2l-.43-.43c-.53-.53-1.46-.9-3.19-1.29"/><path d="M305.5,39.45c-5.47-3.44-11.72-5.18-18.58-5.18s-13.31,1.77-18.88,5.25c-5.56,3.48-9.93,8.22-12.99,14.08-3.05,5.84-4.6,12.36-4.6,19.38,0,6.63,1.57,12.95,4.68,18.79,3.11,5.86,7.48,10.62,12.97,14.14,5.52,3.54,11.85,5.34,18.82,5.34s13.13-1.82,18.6-5.42c5.45-3.57,9.76-8.39,12.82-14.3,3.05-5.9,4.6-12.24,4.6-18.85s-1.55-13.39-4.6-19.23c-3.06-5.87-7.38-10.58-12.84-14.01m-18.58,56.9c-6.63,0-11.68-2.15-15.43-6.56-3.76-4.42-5.67-10.07-5.67-16.8s1.88-12.83,5.6-17.26c3.71-4.41,8.77-6.55,15.5-6.55s11.48,2.09,15.13,6.4c3.66,4.32,5.52,10.03,5.52,16.96s-1.86,12.6-5.54,17.12c-3.65,4.5-8.59,6.68-15.11,6.68"/><path d="M378.81,73.74c0,6.96-1.57,12.56-4.67,16.64-3.04,4.01-7.29,5.97-12.98,5.97-5.05,0-8.71-1.79-11.21-5.46-2.57-3.79-3.88-8.7-3.88-14.59V36.07h-15.37v43.24c0,9.3,2.3,17,6.84,22.9,4.63,6.01,11.26,9.06,19.71,9.06,7.02,0,12.57-1.63,16.47-4.84,2.03-1.66,3.73-3.36,5.08-5.1v8.28h15.22V36.07h-15.22v37.67Z"/><path d="M441.59,34.27c-7.03,0-12.57,1.63-16.47,4.84-2.03,1.67-3.73,3.38-5.08,5.14v-8.17h-15.37V109.61h15.37v-37.82c0-6.96,1.57-12.55,4.67-16.64,3.04-4.01,7.29-5.97,12.97-5.97,5.05,0,8.71,1.78,11.21,5.45,2.58,3.8,3.89,8.71,3.89,14.6v40.37h15.37v-43.38c0-9.3-2.3-17-6.84-22.9-4.63-6.01-11.26-9.06-19.71-9.06"/><path d="M533.03,44.39c-1.94-2.53-4.27-4.64-6.97-6.3-4.12-2.54-8.87-3.82-14.13-3.82-6.66,0-12.83,1.74-18.35,5.18-5.5,3.42-9.87,8.13-12.99,14-3.1,5.85-4.68,12.32-4.68,19.24s1.57,12.96,4.67,18.86c3.11,5.9,7.44,10.71,12.89,14.29,5.47,3.6,11.68,5.42,18.46,5.42,5.26,0,10.01-1.29,14.13-3.82,2.7-1.66,5.03-3.77,6.97-6.3v8.47h15.22V0h-15.22V44.39Zm-5.45,11.27c3.62,4.37,5.45,10.21,5.45,17.34s-1.83,12.76-5.45,17.03c-3.6,4.26-8.62,6.33-15.35,6.33s-11.67-2.19-15.42-6.69c-3.77-4.52-5.68-10.27-5.68-17.11s1.93-12.5,5.73-16.86c3.81-4.37,8.83-6.49,15.37-6.49s11.74,2.11,15.34,6.46"/><path d="M578.2,91.6h0c-2.08-2.14-4.65-3.22-7.65-3.22s-5.72,1.08-7.8,3.22c-2.07,2.13-3.11,4.76-3.11,7.85s1.05,5.57,3.11,7.7c2.08,2.13,4.7,3.22,7.8,3.22s5.57-1.08,7.65-3.22c2.07-2.13,3.12-4.71,3.12-7.7s-1.05-5.72-3.12-7.85"/></g></svg>
+  </div>
+  <div class="text">dotfound analytics</div>
+</footer>
+
+<script>
+// Chart.js defaults
+Chart.defaults.color = 'rgba(255, 255, 255, 0.45)';
+Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.06)';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.font.weight = 400;
+
+const chartColors = {
+  coral: '#FF6B6B',
+  lightBlue: '#cee4ff',
+  purple: '#a78bfa',
+  grey: '#767676',
+  offWhite: '#f2f2f2',
+  coralFaded: 'rgba(255, 107, 107, 0.15)',
+  lightBlueFaded: 'rgba(206, 228, 255, 0.15)',
+  purpleFaded: 'rgba(167, 139, 250, 0.5)',
+};
+
+const tooltipConfig = {
+  backgroundColor: 'rgba(0, 32, 64, 0.95)',
+  titleColor: 'rgba(255, 255, 255, 0.95)',
+  bodyColor: 'rgba(255, 255, 255, 0.7)',
+  borderColor: 'rgba(255, 255, 255, 0.09)',
+  borderWidth: 1,
+  cornerRadius: 8,
+  padding: 12,
+  titleFont: { weight: 500 },
+};
+
+// Generate 30 days of dummy data
+const labels = [];
+const orgClicks = [];
+const paidClicks = [];
+const now = new Date(2026, 2, 25);
+for (let i = 29; i >= 0; i--) {
+  const d = new Date(now);
+  d.setDate(d.getDate() - i);
+  labels.push(d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
+  const dayOfWeek = d.getDay();
+  const weekendDip = (dayOfWeek === 0 || dayOfWeek === 6) ? 0.6 : 1;
+  orgClicks.push(Math.round((900 + Math.random() * 400) * weekendDip));
+  paidClicks.push(Math.round((350 + Math.random() * 200) * weekendDip));
+}
+
+// Trend chart
+new Chart(document.getElementById('trendChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'Organic Clicks',
+        data: orgClicks,
+        borderColor: chartColors.lightBlue,
+        backgroundColor: chartColors.lightBlueFaded,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        borderWidth: 2,
+      },
+      {
+        label: 'Paid Clicks',
+        data: paidClicks,
+        borderColor: chartColors.coral,
+        backgroundColor: chartColors.coralFaded,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        borderWidth: 2,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { intersect: false, mode: 'index' },
+    plugins: {
+      tooltip: tooltipConfig,
+      legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'circle', padding: 20 } }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { callback: v => v.toLocaleString() } }
+    }
+  }
+});
+
+// Click share doughnut
+new Chart(document.getElementById('shareChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Organic', 'Paid'],
+    datasets: [{
+      data: [34218, 12847],
+      backgroundColor: [chartColors.lightBlue, chartColors.coral],
+      borderColor: 'rgba(0,32,64,0.8)',
+      borderWidth: 3,
+      hoverOffset: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    cutout: '65%',
+    plugins: {
+      tooltip: tooltipConfig,
+      legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle', padding: 16 } }
+    }
+  }
+});
+
+// Scatter chart: CPC vs Organic Position
+const scatterData = [
+  { x: 3.2, y: 0.82, label: '/services/analytics' },
+  { x: 5.1, y: 1.24, label: '/blog/ga4-migration' },
+  { x: 8.7, y: 1.56, label: '/services/gtm-setup' },
+  { x: 18.4, y: 2.10, label: '/solutions/automation' },
+  { x: 42.0, y: 1.78, label: '/pricing' },
+  { x: 1.8, y: 0.64, label: '/home' },
+  { x: 14.2, y: 1.92, label: '/blog/consent-mode' },
+  { x: 6.3, y: 1.38, label: '/services/bigquery' },
+  { x: 28.5, y: 2.45, label: '/solutions/dashboards' },
+  { x: 11.0, y: 1.15, label: '/case-studies' },
+];
+
+new Chart(document.getElementById('scatterChart'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: 'Pages',
+      data: scatterData,
+      backgroundColor: chartColors.purple,
+      borderColor: chartColors.purple,
+      pointRadius: 7,
+      pointHoverRadius: 10,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      tooltip: {
+        ...tooltipConfig,
+        callbacks: {
+          label: (ctx) => {
+            const p = ctx.raw;
+            return [p.label, `Position: ${p.x}`, `CPC: £${p.y.toFixed(2)}`];
+          }
+        }
+      },
+      legend: { display: false }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Avg. Organic Position', color: 'rgba(255,255,255,0.45)' },
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        reverse: false,
+      },
+      y: {
+        title: { display: true, text: 'Avg. CPC (£)', color: 'rgba(255,255,255,0.45)' },
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { callback: v => '£' + v.toFixed(2) }
+      }
+    }
+  }
+});
+
+// Table data
+const pageData = [
+  { url: '/services/analytics', orgClicks: 6840, orgImpr: 112000, avgPos: 3.2, orgCTR: 6.1, paidClicks: 1420, adSpend: 1840, cpc: 1.30, conv: 142, signal: 'Reduce paid' },
+  { url: '/solutions/automation', orgClicks: 380, orgImpr: 18200, avgPos: 18.4, orgCTR: 2.1, paidClicks: 2240, adSpend: 4704, cpc: 2.10, conv: 130, signal: 'Grow organic' },
+  { url: '/blog/ga4-migration-guide', orgClicks: 5420, orgImpr: 75200, avgPos: 5.1, orgCTR: 7.2, paidClicks: 860, adSpend: 1066, cpc: 1.24, conv: 68, signal: 'Copy alignment' },
+  { url: '/pricing', orgClicks: 210, orgImpr: 8400, avgPos: 42.0, orgCTR: 2.5, paidClicks: 1880, adSpend: 3344, cpc: 1.78, conv: 112, signal: 'Increase bids' },
+  { url: '/services/gtm-setup', orgClicks: 3920, orgImpr: 64000, avgPos: 8.7, orgCTR: 6.1, paidClicks: 1040, adSpend: 1622, cpc: 1.56, conv: 72, signal: 'Balanced' },
+  { url: '/services/bigquery', orgClicks: 2860, orgImpr: 48000, avgPos: 6.3, orgCTR: 5.96, paidClicks: 780, adSpend: 1076, cpc: 1.38, conv: 54, signal: 'Balanced' },
+  { url: '/blog/consent-mode', orgClicks: 2140, orgImpr: 42000, avgPos: 14.2, orgCTR: 5.1, paidClicks: 620, adSpend: 1190, cpc: 1.92, conv: 38, signal: 'Grow organic' },
+  { url: '/case-studies', orgClicks: 3680, orgImpr: 56000, avgPos: 11.0, orgCTR: 6.6, paidClicks: 440, adSpend: 506, cpc: 1.15, conv: 52, signal: 'Balanced' },
+  { url: '/solutions/dashboards', orgClicks: 1240, orgImpr: 28000, avgPos: 28.5, orgCTR: 4.4, paidClicks: 1680, adSpend: 4116, cpc: 2.45, conv: 86, signal: 'Grow organic' },
+  { url: '/home', orgClicks: 7528, orgImpr: 440000, avgPos: 1.8, orgCTR: 1.7, paidClicks: 1887, adSpend: 1207, cpc: 0.64, conv: 68, signal: 'Branded' },
+];
+
+const signalBadge = {
+  'Reduce paid': 'badge--coral',
+  'Grow organic': 'badge--cyan',
+  'Copy alignment': 'badge--purple',
+  'Increase bids': 'badge--blue',
+  'Balanced': 'badge--green',
+  'Branded': 'badge--muted',
+};
+
+const tbody = document.getElementById('tableBody');
+pageData.forEach(row => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="font-weight: 400; color: var(--text-primary); font-size: 0.8rem; font-family: var(--font-mono);">${row.url}</td>
+    <td class="text-right">${row.orgClicks.toLocaleString()}</td>
+    <td class="text-right">${(row.orgImpr / 1000).toFixed(0)}K</td>
+    <td class="text-right">${row.avgPos.toFixed(1)}</td>
+    <td class="text-right">${row.orgCTR.toFixed(1)}%</td>
+    <td class="text-right">${row.paidClicks.toLocaleString()}</td>
+    <td class="text-right">£${row.adSpend.toLocaleString()}</td>
+    <td class="text-right">£${row.cpc.toFixed(2)}</td>
+    <td class="text-right">${row.conv}</td>
+    <td><span class="badge ${signalBadge[row.signal] || 'badge--muted'}">${row.signal}</span></td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>
+</body>
+</html>
