@@ -21,6 +21,13 @@
       "type": "proposal",
       "date": "2026-03-25",
       "has_password": false
+    },
+    {
+      "slug": "9f6a0a417ca2",
+      "title": "Server-Side GTM ROI Calculator",
+      "type": "other",
+      "date": "2026-03-25",
+      "has_password": false
     }
   ]
 }
