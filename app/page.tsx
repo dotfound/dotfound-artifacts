@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import manifestData from '@/data/manifest.json'
+import ArtefactGrid from './ArtefactGrid'
 
 interface Artefact {
   slug: string
@@ -7,19 +7,6 @@ interface Artefact {
   type: string
   date: string
   has_password: boolean
-}
-
-const typeConfig: Record<string, { label: string; colour: string; bg: string }> = {
-  dashboard: { label: 'Dashboard', colour: 'text-brand-cyan', bg: 'bg-[rgba(34,211,238,0.12)]' },
-  report: { label: 'Report', colour: 'text-brand-light-blue', bg: 'bg-[rgba(206,228,255,0.12)]' },
-  proposal: { label: 'Proposal', colour: 'text-brand-purple', bg: 'bg-[rgba(167,139,250,0.12)]' },
-  presentation: { label: 'Presentation', colour: 'text-brand-coral', bg: 'bg-[rgba(255,107,107,0.12)]' },
-  calculator: { label: 'Calculator', colour: 'text-brand-cyan', bg: 'bg-[rgba(34,211,238,0.12)]' },
-  other: { label: 'Other', colour: 'text-brand-grey', bg: 'bg-[rgba(255,255,255,0.06)]' },
-}
-
-function getTypeConfig(type: string) {
-  return typeConfig[type] ?? typeConfig.other
 }
 
 export default function IndexPage() {
@@ -36,75 +23,13 @@ export default function IndexPage() {
             <div className="w-[110px]" dangerouslySetInnerHTML={{ __html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 581.32 111.26" fill="#fff"><g><path d="M57.12,44.39c-1.94-2.53-4.27-4.64-6.97-6.3-4.12-2.54-8.88-3.82-14.14-3.82-6.66,0-12.83,1.74-18.35,5.18-5.5,3.42-9.87,8.13-12.99,14-3.1,5.85-4.68,12.32-4.68,19.24s1.57,12.96,4.67,18.86c3.11,5.9,7.44,10.71,12.89,14.29,5.47,3.6,11.68,5.42,18.45,5.42,5.26,0,10.02-1.29,14.14-3.82,2.7-1.66,5.03-3.77,6.97-6.3v8.47h15.22V0h-15.22V44.39Zm-5.45,11.27c3.62,4.37,5.45,10.21,5.45,17.34s-1.83,12.76-5.45,17.03c-3.6,4.26-8.62,6.33-15.36,6.33s-11.67-2.19-15.42-6.69c-3.77-4.52-5.67-10.27-5.67-17.11s1.93-12.5,5.73-16.86c3.81-4.37,8.83-6.49,15.37-6.49s11.74,2.11,15.35,6.46"/><path d="M137,39.45c-5.47-3.44-11.72-5.18-18.58-5.18s-13.31,1.77-18.88,5.25c-5.56,3.48-9.93,8.22-12.99,14.08-3.05,5.84-4.6,12.36-4.6,19.38,0,6.63,1.57,12.95,4.68,18.79,3.11,5.86,7.48,10.62,12.97,14.14,5.52,3.54,11.85,5.34,18.82,5.34s13.13-1.82,18.6-5.42c5.45-3.57,9.76-8.39,12.82-14.3,3.05-5.9,4.6-12.24,4.6-18.85s-1.55-13.39-4.6-19.23c-3.06-5.87-7.38-10.58-12.84-14.01m-18.58,56.9c-6.63,0-11.68-2.15-15.44-6.56-3.76-4.42-5.67-10.07-5.67-16.8s1.88-12.83,5.6-17.26c3.71-4.41,8.77-6.55,15.5-6.55s11.48,2.09,15.13,6.4c3.66,4.32,5.52,10.03,5.52,16.96s-1.86,12.6-5.54,17.12c-3.65,4.5-8.59,6.68-15.11,6.68"/><path d="M193.13,95.9c-3.82,0-6.47-.92-7.88-2.75-1.5-1.93-2.25-5.58-2.25-10.84V50.24h17.44v-14.16h-17.44V13.07h-14.31v14.52c0,2.85-.6,5.02-1.78,6.45-1.11,1.35-3.41,2.03-6.85,2.03h-4.6v14.16h12.18v34.93c0,8.76,1.93,15.24,5.73,19.26,3.82,4.04,9.71,6.09,17.51,6.09,3.36,0,6.99-.31,10.75-.92l1.22-.2v-14.47l-1.65,.24c-3.41,.49-6.13,.74-8.06,.74"/><path d="M245.31,.49C243.87,.16,242.17,0,240.26,0c-4.01,0-7.84,.88-11.39,2.62-3.59,1.77-6.51,4.42-8.7,7.9-2.19,3.47-3.3,7.6-3.3,12.27v13.28h-10.97v14.16h11.12v59.38h15.37V50.23h15.93v-14.16h-16.09v-12.68c0-3.33,.95-5.59,2.9-6.93,2.13-1.44,4.44-2.15,7.07-2.15,2.97,0,4.17,.38,4.62,.61l2.09,1.04V2.2l-.43-.43c-.53-.53-1.46-.9-3.19-1.29"/><path d="M305.5,39.45c-5.47-3.44-11.72-5.18-18.58-5.18s-13.31,1.77-18.88,5.25c-5.56,3.48-9.93,8.22-12.99,14.08-3.05,5.84-4.6,12.36-4.6,19.38,0,6.63,1.57,12.95,4.68,18.79,3.11,5.86,7.48,10.62,12.97,14.14,5.52,3.54,11.85,5.34,18.82,5.34s13.13-1.82,18.6-5.42c5.45-3.57,9.76-8.39,12.82-14.3,3.05-5.9,4.6-12.24,4.6-18.85s-1.55-13.39-4.6-19.23c-3.06-5.87-7.38-10.58-12.84-14.01m-18.58,56.9c-6.63,0-11.68-2.15-15.43-6.56-3.76-4.42-5.67-10.07-5.67-16.8s1.88-12.83,5.6-17.26c3.71-4.41,8.77-6.55,15.5-6.55s11.48,2.09,15.13,6.4c3.66,4.32,5.52,10.03,5.52,16.96s-1.86,12.6-5.54,17.12c-3.65,4.5-8.59,6.68-15.11,6.68"/><path d="M378.81,73.74c0,6.96-1.57,12.56-4.67,16.64-3.04,4.01-7.29,5.97-12.98,5.97-5.05,0-8.71-1.79-11.21-5.46-2.57-3.79-3.88-8.7-3.88-14.59V36.07h-15.37v43.24c0,9.3,2.3,17,6.84,22.9,4.63,6.01,11.26,9.06,19.71,9.06,7.02,0,12.57-1.63,16.47-4.84,2.03-1.66,3.73-3.36,5.08-5.1v8.28h15.22V36.07h-15.22v37.67Z"/><path d="M441.59,34.27c-7.03,0-12.57,1.63-16.47,4.84-2.03,1.67-3.73,3.38-5.08,5.14v-8.17h-15.37V109.61h15.37v-37.82c0-6.96,1.57-12.55,4.67-16.64,3.04-4.01,7.29-5.97,12.97-5.97,5.05,0,8.71,1.78,11.21,5.45,2.58,3.8,3.89,8.71,3.89,14.6v40.37h15.37v-43.38c0-9.3-2.3-17-6.84-22.9-4.63-6.01-11.26-9.06-19.71-9.06"/><path d="M533.03,44.39c-1.94-2.53-4.27-4.64-6.97-6.3-4.12-2.54-8.87-3.82-14.13-3.82-6.66,0-12.83,1.74-18.35,5.18-5.5,3.42-9.87,8.13-12.99,14-3.1,5.85-4.68,12.32-4.68,19.24s1.57,12.96,4.67,18.86c3.11,5.9,7.44,10.71,12.89,14.29,5.47,3.6,11.68,5.42,18.46,5.42,5.26,0,10.01-1.29,14.13-3.82,2.7-1.66,5.03-3.77,6.97-6.3v8.47h15.22V0h-15.22V44.39Zm-5.45,11.27c3.62,4.37,5.45,10.21,5.45,17.34s-1.83,12.76-5.45,17.03c-3.6,4.26-8.62,6.33-15.35,6.33s-11.67-2.19-15.42-6.69c-3.77-4.52-5.68-10.27-5.68-17.11s1.93-12.5,5.73-16.86c3.81-4.37,8.83-6.49,15.37-6.49s11.74,2.11,15.34,6.46"/><path d="M578.2,91.6h0c-2.08-2.14-4.65-3.22-7.65-3.22s-5.72,1.08-7.8,3.22c-2.07,2.13-3.11,4.76-3.11,7.85s1.05,5.57,3.11,7.7c2.08,2.13,4.7,3.22,7.8,3.22s5.57-1.08,7.65-3.22c2.07-2.13,3.12-4.71,3.12-7.7s-1.05-5.72-3.12-7.85"/></g></svg>` }} />
             <span className="text-[rgba(255,255,255,0.45)] text-sm font-light tracking-wide">artefacts</span>
           </div>
-
         </div>
       </header>
 
       {/* Artefact grid */}
       <div className="max-w-6xl mx-auto px-6 lg:px-10 pb-16">
-        {artefacts.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-[rgba(255,255,255,0.3)] text-sm font-light">No artefacts published yet.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {artefacts.map((a, i) => {
-              const tc = getTypeConfig(a.type)
-              return (
-                <Link
-                  key={a.slug}
-                  href={`/${a.slug}`}
-                  className="animate-in group relative rounded-lg overflow-hidden border border-[rgba(255,255,255,0.09)] bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.07)] hover:border-[rgba(167,139,250,0.3)] transition-all duration-300"
-                  style={{ animationDelay: `${i * 0.06}s` }}
-                >
-                  {/* Live iframe preview */}
-                  <div className="relative w-full aspect-[16/10] overflow-hidden bg-[rgba(0,0,0,0.2)]">
-                    <iframe
-                      src={`/a/${a.slug}.html`}
-                      title={a.title}
-                      className="w-[200%] h-[200%] origin-top-left pointer-events-none"
-                      style={{ transform: 'scale(0.5)' }}
-                      loading="lazy"
-                      sandbox="allow-scripts allow-same-origin"
-                      tabIndex={-1}
-                    />
-
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#002040]/0 group-hover:bg-[#002040]/50 transition-all duration-300">
-                      <div className="opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-300 flex items-center gap-2 text-white text-sm font-medium">
-                        <span>View</span>
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card info */}
-                  <div className="px-4 py-3.5">
-                    <h2 className="text-[rgba(255,255,255,0.95)] font-medium text-sm leading-snug group-hover:text-[#22D3EE] transition-colors duration-200 truncate">
-                      {a.title}
-                    </h2>
-                    <div className="flex items-center gap-3 mt-2">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-[0.65rem] font-medium tracking-wide ${tc.colour} ${tc.bg}`}>
-                        {tc.label}
-                      </span>
-                      <span className="text-[rgba(255,255,255,0.3)] text-xs font-light">
-                        {new Date(a.date).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        )}
+        <ArtefactGrid artefacts={artefacts} />
       </div>
-
     </main>
   )
 }
