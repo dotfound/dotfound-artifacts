@@ -37,12 +37,6 @@ export default function IndexPage() {
             <span className="text-[rgba(255,255,255,0.45)] text-sm font-light tracking-wide">artefacts</span>
           </div>
 
-          <h1 className="text-[rgba(255,255,255,0.95)] text-[clamp(1.8rem,4vw,2.8rem)] font-semibold leading-tight tracking-tight">
-            Client Library
-          </h1>
-          <p className="text-[rgba(255,255,255,0.5)] text-base font-light mt-2 max-w-lg">
-            Dashboards, reports, and interactive tools — built by dotfound.
-          </p>
         </div>
       </header>
 
