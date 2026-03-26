@@ -28,6 +28,13 @@
       "type": "dashboard",
       "date": "2026-03-25",
       "has_password": false
+    },
+    {
+      "slug": "2dc0203bb168",
+      "title": "Homeschool Hive Site Analysis",
+      "type": "report",
+      "date": "2026-03-26",
+      "has_password": false
     }
   ]
 }
