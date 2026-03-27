@@ -9,8 +9,19 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'dotfound artefacts',
+  title: {
+    default: 'dotfound artefacts',
+    template: '%s | dotfound artefacts',
+  },
   description: 'dotfound client artefacts library',
+  openGraph: {
+    siteName: 'dotfound artefacts',
+    images: [{ url: '/og-image.png' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/og-image.png'],
+  },
 }
 
 export default function RootLayout({
