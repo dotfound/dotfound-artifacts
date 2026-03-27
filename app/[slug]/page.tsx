@@ -1,3 +1,4 @@
+import { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -12,6 +13,18 @@ interface Artefact {
   date: string
   has_password: boolean
   password?: string
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string }
+}): Promise<Metadata> {
+  const artefact = (manifestData.artefacts as Artefact[]).find(
+    a => a.slug === params.slug
+  )
+  if (!artefact) return {}
+  return { title: artefact.title }
 }
 
 export default async function ArtefactPage({
