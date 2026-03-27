@@ -24,7 +24,19 @@ export async function generateMetadata({
     a => a.slug === params.slug
   )
   if (!artefact) return {}
-  return { title: artefact.title }
+  const ogImage = `/api/og?slug=${params.slug}`
+  return {
+    title: artefact.title,
+    openGraph: {
+      title: artefact.title,
+      images: [{ url: ogImage, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: artefact.title,
+      images: [ogImage],
+    },
+  }
 }
 
 export default async function ArtefactPage({

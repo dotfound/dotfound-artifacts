@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     default: 'dotfound artefacts',
     template: '%s | dotfound artefacts',
   },
-  description: 'dotfound client artefacts library',
+  description: 'dotfound artefacts library',
   openGraph: {
     siteName: 'dotfound artefacts',
     images: [{ url: '/og-image.png' }],
