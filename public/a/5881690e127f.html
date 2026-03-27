@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Why Scholē</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #002040;
+      --surface: rgba(255, 255, 255, 0.04);
+      --coral: #FF6B6B;
+      --cyan: #22D3EE;
+      --purple: #a78bfa;
+      --light-blue: #cee4ff;
+      --gold: #f0c674;
+      --text-primary: rgba(255, 255, 255, 0.95);
+      --text-body: rgba(255, 255, 255, 0.7);
+      --text-muted: rgba(255, 255, 255, 0.45);
+      --border: rgba(255, 255, 255, 0.09);
+      --font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      --radius-lg: 12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--navy);
+      color: var(--text-body);
+      font-weight: 300;
+      line-height: 1.6;
+      font-size: 16px;
+      overflow: hidden;
+    }
+
+    .slides-wrapper {
+      height: 100vh;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+    }
+    .slides-wrapper::-webkit-scrollbar { width: 0; }
+    .slides-wrapper { scrollbar-width: none; }
+
+    .slide {
+      height: 100vh;
+      scroll-snap-align: start;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide-content {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .slide-content > * {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .slide-content.visible > *:nth-child(1) { opacity: 1; transform: translateY(0); transition-delay: 0s; }
+    .slide-content.visible > *:nth-child(2) { opacity: 1; transform: translateY(0); transition-delay: 0.12s; }
+    .slide-content.visible > *:nth-child(3) { opacity: 1; transform: translateY(0); transition-delay: 0.12s; }
+    .slide-content.visible > *:nth-child(4) { opacity: 1; transform: translateY(0); transition-delay: 0.24s; }
+    .slide-content.visible > *:nth-child(5) { opacity: 1; transform: translateY(0); transition-delay: 0.36s; }
+    .slide-content.visible > *:nth-child(6) { opacity: 1; transform: translateY(0); transition-delay: 0.48s; }
+
+    /* Centre layout */
+    .slide--centre { text-align: center; }
+    .slide--centre .slide-content { display: flex; flex-direction: column; align-items: center; }
+    .slide--centre p { margin-left: auto; margin-right: auto; }
+
+    /* Split layout */
+    .slide--split .slide-content {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+      align-items: center; max-width: 1100px;
+    }
+    @media (max-width: 768px) {
+      .slide--split .slide-content { grid-template-columns: 1fr; gap: 2rem; }
+    }
+
+    /* Typography */
+    .slide h1 {
+      font-size: clamp(2.4rem, 5vw, 3.8rem); font-weight: 600;
+      color: var(--text-primary); line-height: 1.1;
+      letter-spacing: -0.025em; margin-bottom: 1rem;
+    }
+    .slide h2 {
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 500;
+      color: var(--text-primary); line-height: 1.15;
+      letter-spacing: -0.02em; margin-bottom: 1rem;
+    }
+    .slide p {
+      font-size: 1.1rem; line-height: 1.7; color: var(--text-body);
+      max-width: 650px; margin-bottom: 1rem;
+    }
+    .slide .subtitle {
+      font-size: 1rem; color: var(--text-muted); font-weight: 400;
+    }
+
+    .accent { color: var(--cyan); }
+    .accent-coral { color: var(--coral); }
+    .accent-purple { color: var(--purple); }
+    .accent-gold { color: var(--gold); }
+
+    /* Greek display */
+    .greek-word {
+      font-size: clamp(4rem, 12vw, 9rem);
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+    .greek-word .macron {
+      color: var(--cyan);
+    }
+    .pronunciation {
+      font-size: 1.3rem;
+      color: var(--text-muted);
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      margin-bottom: 2rem;
+    }
+
+    /* Big number */
+    .big-number {
+      font-size: clamp(4rem, 10vw, 8rem);
+      font-weight: 600;
+      color: var(--coral);
+      line-height: 1;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Callout */
+    .callout {
+      background: rgba(0, 0, 0, 0.25);
+      border-left: 3px solid var(--coral);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-top: 1.5rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text-body);
+      text-align: left;
+    }
+    .callout--cyan { border-left-color: var(--cyan); }
+    .callout--purple { border-left-color: var(--purple); }
+    .callout--gold { border-left-color: var(--gold); }
+    .callout strong { color: var(--text-primary); font-weight: 500; }
+
+    /* Card grid */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+      width: 100%;
+    }
+    .slide-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      text-align: left;
+    }
+    .slide-card h3 {
+      font-size: 1rem; font-weight: 500; color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+    .slide-card p {
+      font-size: 0.9rem; color: var(--text-body); margin-bottom: 0;
+      max-width: none;
+    }
+    .slide-card .card-icon {
+      font-size: 1.6rem;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    /* Timeline */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      width: 100%;
+      max-width: 600px;
+    }
+    .timeline-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      padding: 1.25rem 0;
+      border-left: 2px solid rgba(255, 255, 255, 0.08);
+      padding-left: 1.5rem;
+      position: relative;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -5px;
+      top: 1.5rem;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+    }
+    .timeline-item:last-child::before {
+      background: var(--coral);
+    }
+    .timeline-era {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--cyan);
+      min-width: 100px;
+      letter-spacing: 0.05em;
+    }
+    .timeline-item:last-child .timeline-era {
+      color: var(--coral);
+    }
+    .timeline-text {
+      font-size: 0.95rem;
+      color: var(--text-body);
+      line-height: 1.5;
+    }
+    .timeline-text strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* Comparison */
+    .vs-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 2rem;
+      align-items: start;
+      width: 100%;
+      max-width: 800px;
+      margin-top: 2rem;
+    }
+    .vs-col { text-align: left; }
+    .vs-col h3 {
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    .vs-col ul {
+      list-style: none;
+      padding: 0;
+    }
+    .vs-col ul li {
+      font-size: 0.9rem;
+      color: var(--text-body);
+      padding: 0.4rem 0;
+      line-height: 1.5;
+    }
+    .vs-col ul li::before {
+      margin-right: 0.5rem;
+    }
+    .vs-divider {
+      width: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      align-self: stretch;
+    }
+    .col-reject h3 { color: var(--text-muted); }
+    .col-reject ul li::before { content: '✕'; color: rgba(255,255,255,0.2); }
+    .col-accept h3 { color: var(--cyan); }
+    .col-accept ul li::before { content: '✓'; color: var(--cyan); }
+
+    /* Dot nav */
+    .slide-nav {
+      position: fixed; right: 2rem; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 0.75rem; z-index: 100;
+    }
+    .slide-nav .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2); border: none; padding: 0;
+      cursor: pointer; transition: background 0.3s, transform 0.3s;
+    }
+    .slide-nav .dot.active { background: var(--coral); transform: scale(1.3); }
+    .slide-nav .dot:hover { background: rgba(255, 255, 255, 0.5); }
+
+    /* Scroll indicator */
+    .scroll-indicator {
+      position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+      color: var(--text-muted); font-size: 0.7rem; font-weight: 400;
+      letter-spacing: 0.1em; animation: bobDown 2s ease-in-out infinite;
+    }
+    .scroll-indicator svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--text-muted);
+      fill: none;
+      stroke-width: 2;
+    }
+    @keyframes bobDown {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* Quote styling */
+    .quote {
+      font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--text-primary);
+      line-height: 1.5;
+      max-width: 700px;
+      margin-bottom: 1rem;
+      position: relative;
+      padding-left: 1.5rem;
+      border-left: 3px solid var(--cyan);
+    }
+    .quote-attribution {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-style: normal;
+      font-weight: 400;
+      padding-left: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .slide { padding: 2rem; }
+      .vs-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+      .vs-divider { width: 100%; height: 1px; }
+      .card-grid { grid-template-columns: 1fr; }
+      .timeline-item { gap: 1rem; }
+      .timeline-era { min-width: 80px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="slides-wrapper" id="slidesWrapper">
+
+  <!-- Slide 1: Title -->
+  <section class="slide slide--centre">
+    <div class="slide-content">
+      <div class="greek-word">schol<span class="macron">ē</span></div>
+      <div class="pronunciation">/ sko · lay /</div>
+      <p>A name for a home education directory that means exactly what we stand for.</p>
+    </div>
+    <div class="scroll-indicator">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      SCROLL
+    </div>
+  </section>
+
+  <!-- Slide 2: The meaning -->
+  <section class="slide slide--centre">
+    <div class="slide-content">
+      <h2>The original meaning of <span class="accent">"school"</span></h2>
+      <p>In ancient Greek, σχολή didn't mean rows of desks and bell times. It meant <strong>leisure</strong> — the freedom to pursue learning for its own sake. Time to think, explore and grow without a curriculum dictating every minute.</p>
+      <div class="callout callout--cyan">
+        <strong>The twist:</strong> The word that became "school" originally meant the opposite of what school feels like for most kids. That's a story worth telling.
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 3: Timeline -->
+  <section class="slide slide--centre">
+    <div class="slide-content">
+      <h2>How the meaning <span class="accent-coral">shifted</span></h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <span class="timeline-era">Ancient Greece</span>
+          <span class="timeline-text"><strong>σχολή (scholē)</strong> — leisure, free time devoted to learning and philosophy</span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-era">Roman era</span>
+          <span class="timeline-text"><strong>schola</strong> — a place where learned discussions happen</span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-era">Medieval</span>
+          <span class="timeline-text"><strong>scole</strong> — formalised into institutions with fixed structures</span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-era">Today</span>
+          <span class="timeline-text"><strong>school</strong> — compulsory, institutional, timetabled. The original meaning buried.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 4: Why it fits -->
+  <section class="slide slide--centre">
+    <div class="slide-content">
+      <h2>Why it's <span class="accent">perfect</span> for this</h2>
+      <div class="card-grid">
+        <div class="slide-card">
+          <span class="card-icon">&#x1f4a1;</span>
+          <h3>It reclaims the meaning</h3>
+          <p>Home ed families chose to step outside the system. Scholē says "we're going back to what learning was supposed to be."</p>
+        </div>
+        <div class="slide-card">
+          <span class="card-icon">&#x1f30d;</span>
+          <h3>It's universal</h3>
+          <p>Greek roots cross language barriers. It sounds sophisticated without being pretentious. Works internationally if we ever expand.</p>
+        </div>
+        <div class="slide-card">
+          <span class="card-icon">&#x1f50d;</span>
+          <h3>It's distinctive</h3>
+          <p>No one else in UK home ed is using it. It's ownable, brandable, and impossible to confuse with another directory.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 5: The pronunciation question -->
+  <section class="slide slide--centre">
+    <div class="slide-content">
+      <h2>But can people <span class="accent-coral">pronounce</span> it?</h2>
+      <p>Some of the strongest brands in the world had this "problem." It didn't hold them back — it made them more memorable.</p>
+      <div class="vs-grid">
+        <div class="vs-col col-reject">
+          <h3>Names nobody could say at first</h3>
+          <ul>
+            <li>Nike (ny-kee? nyke?)</li>
+            <li>Hyundai (hun-day? hi-un-dai?)</li>
+            <li>IKEA (eye-kee-ah? ih-kay-ah?)</li>
+            <li>Moët (mo-ay? mo-ett?)</li>
+            <li>Lidl (lid-ul? lee-dul?)</li>
+          </ul>
+        </div>
+        <div class="vs-divider"></div>
+        <div class="vs-col col-accept">
+          <h3>What actually happened</h3>
+          <ul>
+            <li>People learned it in seconds</li>
+            <li>The story became shareable</li>
+            <li>Curiosity drove engagement</li>
+            <li>The name became an icebreaker</li>
+            <li>None of them suffered for it</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 6: The existing site -->
+  <section class="slide slide--centre">
+    <div class="slide-content">
+      <h2>What about <span class="accent-purple">schole.org.uk</span>?</h2>
+      <p>There's an existing site at that domain — Scholé International, a charity running schools in East Africa. Here's why it's not a blocker:</p>
+      <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="slide-card">
+          <h3 style="color: var(--coral);">Their situation</h3>
+          <p>UK company dissolved Oct 2024. Operations are Kampala-based. No UK trademark found. Minimal web presence. Completely different sector (African schools vs. UK home ed directory).</p>
+        </div>
+        <div class="slide-card">
+          <h3 style="color: var(--cyan);">Our opportunity</h3>
+          <p>We'd use our own domain — schole.co.uk or similar. Zero audience overlap. The dissolved company status means the name is increasingly available. A quick IPO trademark check confirms the path is clear.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 7: The brand story -->
+  <section class="slide slide--centre">
+    <div class="slide-content">
+      <div class="quote">"The word that became 'school' originally meant the freedom to learn — not the obligation to. We're bringing that meaning back."</div>
+      <div class="quote-attribution">— The Scholē about page, practically writing itself</div>
+      <div class="callout callout--gold" style="margin-top: 2.5rem;">
+        <strong>The brand story in 10 seconds:</strong> Every parent on the platform already believes learning should be free, curious and child-led. Scholē gives that belief a name — one that's been waiting 2,400 years to be reclaimed.
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 8: Summary -->
+  <section class="slide slide--centre">
+    <div class="slide-content">
+      <div class="greek-word" style="font-size: clamp(3rem, 8vw, 6rem);">schol<span class="macron">ē</span></div>
+      <p style="font-size: 1.2rem; color: var(--text-primary); font-weight: 400; max-width: 550px;">Deep meaning. Distinctive. Ownable. A name that tells the whole story before you've even explained the product.</p>
+      <div style="display: flex; gap: 2rem; margin-top: 2rem; flex-wrap: wrap; justify-content: center;">
+        <div style="text-align: center;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.1em; margin-bottom: 0.25rem;">NEXT STEPS</div>
+        </div>
+      </div>
+      <div class="card-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 1rem;">
+        <div class="slide-card" style="text-align: center; padding: 1.25rem;">
+          <h3 style="font-size: 0.85rem; color: var(--cyan);">1. Check IPO register</h3>
+          <p style="font-size: 0.8rem;">Confirm no UK trademark for "Scholē" in education</p>
+        </div>
+        <div class="slide-card" style="text-align: center; padding: 1.25rem;">
+          <h3 style="font-size: 0.85rem; color: var(--cyan);">2. Grab the domain</h3>
+          <p style="font-size: 0.8rem;">schole.co.uk, schole.uk, or getschole.co.uk</p>
+        </div>
+        <div class="slide-card" style="text-align: center; padding: 1.25rem;">
+          <h3 style="font-size: 0.85rem; color: var(--cyan);">3. Say yes</h3>
+          <p style="font-size: 0.8rem;">Because this one's the one</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<nav class="slide-nav" id="slideNav"></nav>
+
+<script>
+const wrapper = document.getElementById('slidesWrapper');
+const slides = document.querySelectorAll('.slide');
+const nav = document.getElementById('slideNav');
+
+slides.forEach((_, i) => {
+  const dot = document.createElement('button');
+  dot.className = 'dot' + (i === 0 ? ' active' : '');
+  dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+  dot.addEventListener('click', () => {
+    slides[i].scrollIntoView({ behavior: 'smooth' });
+  });
+  nav.appendChild(dot);
+});
+
+const dots = nav.querySelectorAll('.dot');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const content = entry.target.querySelector('.slide-content');
+    if (entry.isIntersecting) {
+      if (content) content.classList.add('visible');
+      const index = Array.from(slides).indexOf(entry.target);
+      dots.forEach((d, i) => d.classList.toggle('active', i === index));
+    } else {
+      if (content) content.classList.remove('visible');
+    }
+  });
+}, {
+  root: wrapper,
+  threshold: 0.6
+});
+
+slides.forEach(slide => observer.observe(slide));
+</script>
+
+</body>
+</html>
