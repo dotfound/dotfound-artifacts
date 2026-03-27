@@ -6,6 +6,8 @@ import manifestData from '@/data/manifest.json'
 import { hashPassword } from '@/lib/crypto'
 import ArtefactLogin from './ArtefactLogin'
 
+export const dynamic = 'force-dynamic'
+
 interface Artefact {
   slug: string
   title: string
