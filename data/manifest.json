@@ -50,6 +50,13 @@
       "type": "other",
       "date": "2026-03-27",
       "has_password": false
+    },
+    {
+      "slug": "195f2990df5a",
+      "title": "dotfound Control Panel",
+      "type": "dashboard",
+      "date": "2026-04-29",
+      "has_password": false
     }
   ]
 }
